@@ -1,0 +1,13 @@
+
+import axiosInstance from "@/constants/axiosInstance";
+
+const getAllProducts = async (page: number = 0, size: number = 10) => {
+  try {
+    const response = await axiosInstance.get("/Materiel/getAllMateriel");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export default getAllProducts;
