@@ -6,7 +6,7 @@ import { useEffect } from 'react'
 import 'react-native-reanimated'
 
 import { useColorScheme } from '@/hooks/use-color-scheme'
-import "./global.css"
+import './global.css'
 export default function RootLayout() {
   const colorScheme = useColorScheme()
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
       <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="login/index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
