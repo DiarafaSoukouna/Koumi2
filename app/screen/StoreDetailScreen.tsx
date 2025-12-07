@@ -1,4 +1,3 @@
-// app/screens/StoreDetailScreen.tsx
 import { StatusBar } from 'expo-status-bar';
 import {
     ArrowLeft,

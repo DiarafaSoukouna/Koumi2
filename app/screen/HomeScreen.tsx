@@ -1,9 +1,7 @@
-// app/screens/HomeScreen.tsx
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
 
 
-// Données
 import Header from '@/components/common/Header';
 import SearchBar from '@/components/common/SearchBar';
 import ActorTypesList from '@/components/home/ActorTypesList';
@@ -12,15 +10,13 @@ import CategoryGrid from '@/components/home/CategoryGrid';
 import FeaturedStoresList from '@/components/home/FeaturedStoresList';
 import HotProductsList from '@/components/home/HotProductsList';
 import PromotionCarousel from '@/components/home/PromotionCarousel';
-import QuickActions from '@/components/home/QuickActions';
 import {
     acteurTypes,
     allProducts,
     categories,
     featuredStores,
     hotProducts,
-    promotions,
-    quickActions
+    promotions
 } from '@/constants/data';
 import { router } from 'expo-router';
 
@@ -130,21 +126,8 @@ export default function HomeScreen() {
                         onAddToCart={addToCart}
                         onSeeAllPress={() => console.log('See all products')}
                     />
-
-                    {/* Actions rapides */}
-                    <QuickActions
-                        actions={quickActions}
-                        onActionPress={(action) => console.log('Action:', action)}
-                    />
-
                 </View>
             </ScrollView>
-
-            {/* Navigation inférieure */}
-            {/* <BottomNav
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-      /> */}
         </SafeAreaView>
     );
 }
