@@ -1,28 +1,15 @@
 import ProductCard from '@/components/cards/ProductCard';
+import { Stock } from '@/Types/Stock';
 import { ChevronRight } from 'lucide-react-native';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-interface Product {
-    id: number;
-    name: string;
-    price: number;
-    oldPrice?: number;
-    image: string;
-    store: string;
-    rating: number;
-    reviews: number;
-    isHot?: boolean;
-    discount?: number;
-    category: string;
-}
-
 interface AllProductsGridProps {
-    products: Product[];
+    products: Stock[];
     favorites: number[];
-    onProductPress: (product: Product) => void;
+    onProductPress: (product: any) => void;
     onFavoritePress: (productId: number) => void;
-    onAddToCart: (product: Product) => void;
+    onAddToCart: (product: Stock) => void;
     onSeeAllPress: () => void;
 }
 
@@ -50,14 +37,22 @@ export default function AllProductsGrid({
             </View>
 
             <View className="flex-row flex-wrap justify-between">
-                {products.slice(0, 4).map((product) => (
-                    <View key={product.id} className="w-[48%] mb-3">
+                {products.map((stock) => (
+                    <View key={stock.idStock} className="w-[48%] mb-3">
                         <ProductCard
-                            product={product}
-                            isFavorite={favorites.includes(product.id)}
-                            onPress={() => onProductPress(product)}
-                            onFavoritePress={() => onFavoritePress(product.id)}
-                            onAddToCart={() => onAddToCart(product)}
+                            product={{
+                                id: parseInt(stock.idStock) || Math.floor(Math.random() * 1000),
+                                name: stock.nomProduit,
+                                price: stock.prix,
+                                image: stock.photo,
+                                store: stock.magasin?.nomMagasin || "Magasin",
+                                reviews: stock.nbreView,
+                                category: stock.typeProduit
+                            }}
+                            isFavorite={favorites.includes(parseInt(stock.idStock))}
+                            onPress={() => onProductPress(stock)}
+                            onFavoritePress={() => onFavoritePress(parseInt(stock.idStock))}
+                            onAddToCart={() => onAddToCart(stock)}
                         />
                     </View>
                 ))}

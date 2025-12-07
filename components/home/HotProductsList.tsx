@@ -1,28 +1,15 @@
 import ProductCard from '@/components/cards/ProductCard';
+import { Stock } from '@/Types/Stock';
 import { ChevronRight, Flame } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-interface Product {
-    id: number;
-    name: string;
-    price: number;
-    oldPrice?: number;
-    image: string;
-    store: string;
-    rating: number;
-    reviews: number;
-    isHot: boolean;
-    discount?: number;
-    category: string;
-}
-
 interface HotProductsListProps {
-    products: Product[];
+    products: Stock[];
     favorites: number[];
-    onProductPress: (product: Product) => void;
+    onProductPress: (product: any) => void;
     onFavoritePress: (productId: number) => void;
-    onAddToCart: (product: Product) => void;
+    onAddToCart: (product: Stock) => void;
     onSeeAllPress: () => void;
 }
 
@@ -34,7 +21,8 @@ export default function HotProductsList({
     onAddToCart,
     onSeeAllPress,
 }: HotProductsListProps) {
-    const hotProducts = products.filter(p => p.isHot);
+    // Filter hot products logic, for now taking top viewed
+    const hotProducts = products.sort((a, b) => b.nbreView - a.nbreView).slice(0, 5);
 
     return (
         <View>
@@ -58,14 +46,23 @@ export default function HotProductsList({
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-3 pb-2">
-                    {hotProducts.map((product) => (
-                        <View key={product.id} className="w-40">
+                    {hotProducts.map((stock) => (
+                        <View key={stock.idStock} className="w-40">
                             <ProductCard
-                                product={product}
-                                isFavorite={favorites.includes(product.id)}
-                                onPress={() => onProductPress(product)}
-                                onFavoritePress={() => onFavoritePress(product.id)}
-                                onAddToCart={() => onAddToCart(product)}
+                                product={{
+                                    id: parseInt(stock.idStock) || Math.floor(Math.random() * 1000), // Fallback if idStock is not number
+                                    name: stock.nomProduit,
+                                    price: stock.prix,
+                                    image: stock.photo,
+                                    store: stock.magasin?.nomMagasin || "Magasin",
+                                    reviews: stock.nbreView,
+                                    isHot: true,
+                                    category: stock.typeProduit
+                                }}
+                                isFavorite={favorites.includes(parseInt(stock.idStock))}
+                                onPress={() => onProductPress(stock)}
+                                onFavoritePress={() => onFavoritePress(parseInt(stock.idStock))}
+                                onAddToCart={() => onAddToCart(stock)}
                                 compact
                             />
                         </View>

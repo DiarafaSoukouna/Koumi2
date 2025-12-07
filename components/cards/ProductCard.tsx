@@ -1,5 +1,5 @@
 import Badge from '@/components/common/Badge';
-import { Heart, Plus, Star } from 'lucide-react-native';
+import { Heart, Plus } from 'lucide-react-native';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 
@@ -11,7 +11,6 @@ interface ProductCardProps {
         oldPrice?: number;
         image: string;
         store: string;
-        rating: number;
         reviews: number;
         isHot?: boolean;
         discount?: number;
@@ -38,8 +37,6 @@ export default function ProductCard({
         oldPrice,
         image,
         store,
-        rating,
-        reviews,
         isHot,
         discount,
         category,
@@ -101,17 +98,6 @@ export default function ProductCard({
                 <Text className="text-gray-500 text-xs mb-2" numberOfLines={1}>
                     {store}
                 </Text>
-
-                {/* Note et avis */}
-                <View className="flex-row items-center mb-2">
-                    <Star size={12} color="#22C55E" fill="#22C55E" />
-                    <Text className="text-gray-800 text-xs font-medium ml-1">
-                        {rating}
-                    </Text>
-                    <Text className="text-gray-500 text-xs ml-1">
-                        ({reviews})
-                    </Text>
-                </View>
 
                 {/* Prix et bouton panier */}
                 <View className="flex-row items-center justify-between">

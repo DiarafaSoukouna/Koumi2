@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
 
 
@@ -11,20 +11,24 @@ import FeaturedStoresList from '@/components/home/FeaturedStoresList';
 import HotProductsList from '@/components/home/HotProductsList';
 import PromotionCarousel from '@/components/home/PromotionCarousel';
 import {
-    acteurTypes,
-    allProducts,
     categories,
-    featuredStores,
-    hotProducts,
     promotions
 } from '@/constants/data';
+import { useHome } from '@/context/HomeContext';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
+    const { magasins, getAllMagasins, stocks, getAllStock, typeActeur, getAllTypeActeurs } = useHome();
     const [currentPage, setCurrentPage] = useState('home');
     const [searchQuery, setSearchQuery] = useState('');
     const [favorites, setFavorites] = useState<number[]>([1, 2]);
     const [cart, setCart] = useState<any[]>([]);
+
+    useEffect(() => {
+        getAllMagasins();
+        getAllStock();
+        getAllTypeActeurs();
+    }, []);
 
     const handleProductPress = (product: any) => {
         console.log('Product pressed:', product);
@@ -95,21 +99,21 @@ export default function HomeScreen() {
 
                     {/* Liste des types d'acteurs */}
                     <ActorTypesList
-                        actorTypes={acteurTypes}
+                        actorTypes={typeActeur}
                         onActorTypePress={(type) => console.log('Actor type:', type)}
                     />
 
 
                     {/* Magasins populaires */}
                     <FeaturedStoresList
-                        stores={featuredStores}
+                        stores={magasins}
                         onStorePress={handleStorePress}
                         onSeeAllPress={() => router.push('/screen/StoreDetailScreen')}
                     />
 
                     {/* Produits populaires */}
                     <HotProductsList
-                        products={hotProducts}
+                        products={stocks}
                         favorites={favorites}
                         onProductPress={handleProductPress}
                         onFavoritePress={toggleFavorite}
@@ -119,7 +123,7 @@ export default function HomeScreen() {
 
                     {/* Tous les produits */}
                     <AllProductsGrid
-                        products={allProducts}
+                        products={stocks}
                         favorites={favorites}
                         onProductPress={handleProductPress}
                         onFavoritePress={toggleFavorite}

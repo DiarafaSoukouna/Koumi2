@@ -1,23 +1,13 @@
 import StoreCard from '@/components/cards/StoreCard';
+import { Magasin } from '@/Types/Magasin';
 import { ChevronRight, Store } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-interface Store {
-    id: number;
-    name: string;
-    type: string;
-    image: string;
-    rating: number;
-    reviews: number;
-    products: number;
-    isVerified: boolean;
-    location: string;
-}
 
 interface FeaturedStoresListProps {
-    stores: Store[];
-    onStorePress: (store: Store) => void;
+    stores: Magasin[];
+    onStorePress: (store: Magasin) => void;
     onSeeAllPress: () => void;
 }
 
@@ -49,7 +39,7 @@ export default function FeaturedStoresList({
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-3 pb-2">
                     {stores.map((store) => (
-                        <View key={store.id} className="w-64">
+                        <View key={store.idMagasin} className="w-64">
                             <StoreCard
                                 store={store}
                                 onPress={() => onStorePress(store)}
