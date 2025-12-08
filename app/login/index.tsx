@@ -4,6 +4,7 @@ import type React from 'react'
 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Picker } from '@react-native-picker/picker'
+import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   Image,
@@ -65,6 +66,7 @@ const LoginPage = () => {
     confirmPassword: '',
   })
   const [isRegistering, setIsRegistering] = useState(false)
+  const router = useRouter()
 
   return (
     <SafeAreaView className="flex-1 bg-gradient-to-b from-orange-50 to-white">
@@ -100,6 +102,7 @@ const LoginPage = () => {
           <TouchableOpacity
             className="bg-orange-500 py-4 rounded-2xl shadow-lg shadow-orange-300"
             activeOpacity={0.8}
+            onPress={() => router.push('../profil')}
           >
             <Text className="text-white text-center text-lg font-bold">
               {isRegistering ? 'Créer mon compte' : 'Se connecter'}
