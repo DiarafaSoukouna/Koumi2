@@ -28,7 +28,7 @@ export default function StoreCard({ store, onPress }: StoreCardProps) {
                 {/* Informations sur l'image */}
                 <View className="absolute bottom-3 left-3 right-3">
                     <View className="flex-row items-center gap-2">
-                        <Text className="font-bold text-white text-sm flex-1">
+                        <Text className="font-bold text-black text-sm flex-1">
                             {magasin.nomMagasin}
                         </Text>
                         {<Verified size={16} color="#22C55E" />}

@@ -9,7 +9,7 @@ interface AllProductsGridProps {
     favorites: number[];
     onProductPress: (product: any) => void;
     onFavoritePress: (productId: number) => void;
-    onAddToCart: (product: Stock) => void;
+    // onAddToCart: (product: Stock) => void;
     onSeeAllPress: () => void;
 }
 
@@ -18,7 +18,7 @@ export default function AllProductsGrid({
     favorites,
     onProductPress,
     onFavoritePress,
-    onAddToCart,
+    // onAddToCart,
     onSeeAllPress,
 }: AllProductsGridProps) {
     return (
@@ -52,7 +52,7 @@ export default function AllProductsGrid({
                             isFavorite={favorites.includes(parseInt(stock.idStock))}
                             onPress={() => onProductPress(stock)}
                             onFavoritePress={() => onFavoritePress(parseInt(stock.idStock))}
-                            onAddToCart={() => onAddToCart(stock)}
+                        // onAddToCart={() => onAddToCart(stock)}
                         />
                     </View>
                 ))}

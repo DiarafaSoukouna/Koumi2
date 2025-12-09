@@ -19,7 +19,7 @@ interface ProductCardProps {
     isFavorite: boolean;
     onPress: () => void;
     onFavoritePress: () => void;
-    onAddToCart: () => void;
+    // onAddToCart: () => void;
     compact?: boolean;
 }
 
@@ -28,7 +28,7 @@ export default function ProductCard({
     isFavorite,
     onPress,
     onFavoritePress,
-    onAddToCart,
+    // onAddToCart,
     compact = false,
 }: ProductCardProps) {
     const {
@@ -115,7 +115,7 @@ export default function ProductCard({
                     <TouchableOpacity
                         onPress={(e) => {
                             e.stopPropagation();
-                            onAddToCart();
+                            // onAddToCart();
                         }}
                         className="w-8 h-8 bg-green-500 rounded-full items-center justify-center"
                     >

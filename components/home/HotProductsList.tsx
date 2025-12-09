@@ -9,7 +9,7 @@ interface HotProductsListProps {
     favorites: number[];
     onProductPress: (product: any) => void;
     onFavoritePress: (productId: number) => void;
-    onAddToCart: (product: Stock) => void;
+    // onAddToCart: (product: Stock) => void;
     onSeeAllPress: () => void;
 }
 
@@ -18,10 +18,9 @@ export default function HotProductsList({
     favorites,
     onProductPress,
     onFavoritePress,
-    onAddToCart,
+    // onAddToCart,
     onSeeAllPress,
 }: HotProductsListProps) {
-    // Filter hot products logic, for now taking top viewed
     const hotProducts = products.sort((a, b) => b.nbreView - a.nbreView).slice(0, 5);
 
     return (
@@ -62,7 +61,7 @@ export default function HotProductsList({
                                 isFavorite={favorites.includes(parseInt(stock.idStock))}
                                 onPress={() => onProductPress(stock)}
                                 onFavoritePress={() => onFavoritePress(parseInt(stock.idStock))}
-                                onAddToCart={() => onAddToCart(stock)}
+                                // onAddToCart={() => onAddToCart(stock)}
                                 compact
                             />
                         </View>

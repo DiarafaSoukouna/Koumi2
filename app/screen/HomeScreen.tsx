@@ -15,6 +15,8 @@ import {
     promotions
 } from '@/constants/data';
 import { useHome } from '@/context/HomeContext';
+import { Magasin } from '@/Types/Magasin';
+import { Stock } from '@/Types/Stock';
 import { router } from 'expo-router';
 
 export default function HomeScreen() {
@@ -30,14 +32,20 @@ export default function HomeScreen() {
         getAllTypeActeurs();
     }, []);
 
-    const handleProductPress = (product: any) => {
-        console.log('Product pressed:', product);
-        // Navigation vers détail produit
+    const handleProductPress = (stock: Stock) => {
+        router.push({
+            pathname: "/screen/ProductDetailScreen",
+            params: { stock: JSON.stringify(stock) }
+        })
     };
 
-    const handleStorePress = (store: any) => {
-        router.push('/screen/StoreDetailScreen');
-    };
+    const handleStorePress = (Magasin: Magasin) => {
+        router.push({
+            pathname: "/screen/StoreDetailScreen",
+            params: { Magasin: JSON.stringify(Magasin) }
+        })
+    }
+
 
     const toggleFavorite = (productId: number) => {
         setFavorites(prev =>
@@ -47,27 +55,25 @@ export default function HomeScreen() {
         );
     };
 
-    const addToCart = (product: any) => {
-        const existing = cart.find(item => item.id === product.id);
-        if (existing) {
-            setCart(cart.map(item =>
-                item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-            ));
-        } else {
-            setCart([...cart, { ...product, quantity: 1 }]);
-        }
-    };
+    // const addToCart = (product: any) => {
+    //     const existing = cart.find(item => item.id === product.id);
+    //     if (existing) {
+    //         setCart(cart.map(item =>
+    //             item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+    //         ));
+    //     } else {
+    //         setCart([...cart, { ...product, quantity: 1 }]);
+    //     }
+    // };
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-
-            {/* Header avec recherche */}
             <Header
                 title="KOUMI"
                 location="Yaoundé, Cameroun"
                 cartCount={cart.length}
                 notificationCount={3}
-                onCartPress={() => console.log('Cart pressed')}
+                // onCartPress={() => console.log('Cart pressed')}
                 onNotificationPress={() => console.log('Notification pressed')}
             />
 
@@ -102,13 +108,11 @@ export default function HomeScreen() {
                         actorTypes={typeActeur}
                         onActorTypePress={(type) => console.log('Actor type:', type)}
                     />
-
-
                     {/* Magasins populaires */}
                     <FeaturedStoresList
                         stores={magasins}
                         onStorePress={handleStorePress}
-                        onSeeAllPress={() => router.push('/screen/StoreDetailScreen')}
+                        onSeeAllPress={() => console.log('See all stores')}
                     />
 
                     {/* Produits populaires */}
@@ -117,7 +121,7 @@ export default function HomeScreen() {
                         favorites={favorites}
                         onProductPress={handleProductPress}
                         onFavoritePress={toggleFavorite}
-                        onAddToCart={addToCart}
+                        // onAddToCart={addToCart}
                         onSeeAllPress={() => console.log('See all hot products')}
                     />
 
@@ -127,7 +131,7 @@ export default function HomeScreen() {
                         favorites={favorites}
                         onProductPress={handleProductPress}
                         onFavoritePress={toggleFavorite}
-                        onAddToCart={addToCart}
+                        // onAddToCart={addToCart}
                         onSeeAllPress={() => console.log('See all products')}
                     />
                 </View>

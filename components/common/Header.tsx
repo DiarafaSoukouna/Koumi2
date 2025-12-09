@@ -1,4 +1,4 @@
-import { Bell, Fish, MapPin, ShoppingCart } from 'lucide-react-native';
+import { Bell, Fish, MapPin } from 'lucide-react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
 import IconButton from './IconButton';
@@ -8,7 +8,7 @@ interface HeaderProps {
     location: string;
     cartCount: number;
     notificationCount: number;
-    onCartPress: () => void;
+    // onCartPress: () => void;
     onNotificationPress: () => void;
 }
 
@@ -17,7 +17,7 @@ export default function Header({
     location,
     cartCount,
     notificationCount,
-    onCartPress,
+    // onCartPress,
     onNotificationPress,
 }: HeaderProps) {
     return (
@@ -43,12 +43,12 @@ export default function Header({
                         onPress={onNotificationPress}
                         color="#64748B"
                     />
-                    <IconButton
+                    {/* <IconButton
                         icon={ShoppingCart}
                         badgeCount={cartCount}
                         onPress={onCartPress}
                         color="#64748B"
-                    />
+                    /> */}
                 </View>
             </View>
         </View>
