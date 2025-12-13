@@ -43,12 +43,15 @@ export default function DashboardScreen() {
   const user = useMemo(() => {
     // Si vous avez un contexte d'authentification, utilisez-le ici
     // Par exemple: const { user } = useAuth();
-    // Pour l'instant, récupérer depuis les données disponibles
-    if (merchant.stocks.length > 0 && merchant.stocks[0].acteur) {
-      return merchant.stocks[0].acteur;
-    }
-    return null;
-  }, [merchant.stocks]);
+
+    // TEMPORAIRE: Utiliser un ID utilisateur codé en dur pour le développement
+    return {
+      idActeur: 'd48lrq5lpgw53adl0yq1',
+      nomActeur: 'Macky', // Ou récupérer depuis une API si possible, sinon valeur par défaut
+      typeActeur: [{ libelle: 'Marchand' }],
+      // Ajouter d'autres champs si nécessaire
+    };
+  }, []);
 
   // Extraire nomActeur et typeActeur
   const nomActeur = user?.nomActeur || 'Utilisateur';
@@ -199,6 +202,7 @@ export default function DashboardScreen() {
                   icon={Store}
                   color="#EA580C"
                   subtitle="Points de vente"
+                  onPress={() => router.push('/screen/DashbordScreen/store/StoresListScreen')}
                 />
               </View>
 
@@ -311,7 +315,7 @@ export default function DashboardScreen() {
                   className="flex-row items-center"
                   onPress={() => router.push('/screen/DashbordScreen/ProductsListScreen')}
                 >
-                  <Text className="text-primary text-sm font-medium">Voir tous</Text>
+                  <Text className="text-orange-500 text-sm font-medium">Voir tous</Text>
                   <ChevronRight size={16} color="#079C48" />
                 </TouchableOpacity>
               </View>
@@ -332,7 +336,7 @@ export default function DashboardScreen() {
       {/* Bouton d'action flottant */}
       <TouchableOpacity
         onPress={() => router.push('/screen/DashbordScreen/form/AddProductScreen')}
-        className="absolute bottom-6 right-6 bg-primary w-14 h-14 rounded-full items-center justify-center shadow-lg"
+        className="absolute bottom-6 right-6 bg-orange-500 w-14 h-14 rounded-full items-center justify-center shadow-lg"
       >
         <Plus size={24} color="black" />
       </TouchableOpacity>

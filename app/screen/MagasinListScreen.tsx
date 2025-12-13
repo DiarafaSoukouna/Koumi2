@@ -1,9 +1,7 @@
-// app/screens/MagasinListScreen.tsx
 import { Magasin } from '@/Types/Magasin';
 import { useHome } from '@/context/HomeContext';
 import { useRouter } from 'expo-router';
 import {
-    ArrowLeft,
     ChevronRight,
     Grid3x3,
     List,
@@ -13,7 +11,7 @@ import {
     Star,
     Store
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Dimensions,
@@ -36,6 +34,10 @@ export default function MagasinListScreen() {
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [refreshing, setRefreshing] = useState(false);
+
+    useEffect(() => {
+        getAllMagasins();
+    }, []);
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -219,12 +221,6 @@ export default function MagasinListScreen() {
             <View className="bg-white px-4 pt-4 pb-3 border-b border-gray-200">
                 <View className="flex-row items-center justify-between mb-3">
                     <View className="flex-row items-center flex-1">
-                        <TouchableOpacity
-                            onPress={() => router.back()}
-                            className="p-2 -ml-2 mr-2"
-                        >
-                            <ArrowLeft size={24} color="#1E293B" />
-                        </TouchableOpacity>
                         <View className="flex-1">
                             <Text className="text-xl font-bold text-gray-800">Magasins</Text>
                             <Text className="text-gray-500 text-xs">
