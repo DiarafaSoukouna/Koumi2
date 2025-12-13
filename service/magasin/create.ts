@@ -19,7 +19,7 @@ export const createMagasin = async (data: CreateMagasinData): Promise<void> => {
           'Content-Type': 'multipart/form-data',
         },
       })
-    // console.log('Mack', response)
+    console.log('Mack', response)
     console.log("magzin creer avec succes")
 
   } catch (error) {

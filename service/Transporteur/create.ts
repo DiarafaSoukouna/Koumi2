@@ -12,7 +12,7 @@ export const createVehicule = async (data: CreateVehiculeData): Promise<void> =>
         }
 
         const response = await axiosInstance.post("/vehicule/create?vehicule", formaData)
-        console.log('response', response)
+        console.log('response vehicule', response)
     } catch (error) {
         console.error('error creation', error)
         throw error

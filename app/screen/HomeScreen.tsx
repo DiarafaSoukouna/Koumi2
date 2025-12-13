@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
-
+import { ScrollView, View } from 'react-native';
 
 import Header from '@/components/common/Header';
 import SearchBar from '@/components/common/SearchBar';
@@ -18,6 +17,7 @@ import { useHome } from '@/context/HomeContext';
 import { Magasin } from '@/Types/Magasin';
 import { Stock } from '@/Types/Stock';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
     const { magasins, getAllMagasins, stocks, getAllStock, typeActeur, getAllTypeActeurs } = useHome();

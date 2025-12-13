@@ -55,7 +55,7 @@ export interface CreateZoneProductionData {
   longitude: string
   personneModif: string | null
   acteur: { idActeur: string }
-  image: string
+  image: string | undefined
 }
 
 export interface CreateMagasinData {
@@ -79,7 +79,8 @@ export interface CreateStockData {
   origineProduit: string
   descriptionStock: string
   photo: string,
-  zoneProduction: { idZoneProduction: string }
+  // zoneProduction: { idZoneProduction: string }
+  zoneProduction?: { idZoneProduction: string }
   speculation: { idSpeculation: string }
   unite: { idUnite: string }
   magasin: { idMagasin: string }
@@ -121,6 +122,11 @@ export interface MerchantContextType {
   errorVehicules: string | null
   errorUnites: string | null
 
+  // Notifications
+  notifications: Array<{ type: 'success' | 'error' | 'info'; message: string; id: string }>;
+  showNotification: (type: 'success' | 'error' | 'info', message: string) => void;
+  removeNotification: (id: string) => void;
+
   // Fonctions de récupération
   fetchZonesProduction: () => Promise<void>
   fetchMagasins: () => Promise<void>
@@ -131,6 +137,8 @@ export interface MerchantContextType {
   fetchNiveau1Pays: () => Promise<void>
   fetchVehicules: () => Promise<void>
   fetchUnites: () => Promise<void>
+  refreshAll: () => Promise<void>
+
   // Fonctions de création
   createZoneProduction: (data: CreateZoneProductionData) => Promise<void>
   createMagasin: (data: CreateMagasinData) => Promise<void>

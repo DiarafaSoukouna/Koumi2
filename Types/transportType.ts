@@ -1,7 +1,7 @@
 import { Acteur } from "./Acteur";
 import { Monnaie } from "./monnaie";
-import { TypeVoiture } from "./TypeVoiture";
 import { Pays } from "./pays";
+import { TypeVoiture } from "./TypeVoiture";
 
 export interface Vehicule {
     idVehicule: string;
@@ -25,6 +25,10 @@ export interface Vehicule {
     typeVoiture: TypeVoiture;
     monnaie: Monnaie;
 }
+interface DestinationPrice {
+    destination: string;
+    price: string;
+}
 
 export interface CreateVehiculeData {
     nomVehicule: string;
@@ -32,7 +36,7 @@ export interface CreateVehiculeData {
     codeVehicule: string;
     description: string;
     nbKilometrage: number;
-    prixParDestination: { [key: string]: number };
+    prixParDestination: DestinationPrice;
     statutVehicule: boolean;
     pays: string;
     photoVehicule: string;
