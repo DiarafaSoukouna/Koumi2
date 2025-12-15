@@ -1,13 +1,15 @@
 import { CustomInput } from "@/components/common/CustomInput";
-import { useMerchant } from "@/context/Merchant";
-import { Magasin } from "@/Types/merchantType";
+import { useTransporteur } from "@/context/Transporteur";
+import { Vehicule } from "@/Types/transportType";
 import { useRouter } from "expo-router";
 import {
   ArrowLeft,
+  Car,
+  CheckCircle,
+  Gauge,
   MapPin,
-  Phone,
   Plus,
-  Store as StoreIcon,
+  XCircle,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -21,37 +23,42 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function StoresListScreen() {
+export default function VehiclesListScreen() {
   const router = useRouter();
-  const { magasins, loadingMagasins, fetchMagasins } = useMerchant();
+  const { vehicules, loadingVehicules, fetchVehicules } = useTransporteur();
 
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
-  const filteredStores = useMemo(() => {
-    let filtered = [...magasins];
+  const filteredVehicles = useMemo(() => {
+    let filtered = [...vehicules];
 
     // Filtre par recherche
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (store) =>
-          store.nomMagasin.toLowerCase().includes(query) ||
-          store.localiteMagasin.toLowerCase().includes(query) ||
-          store.contactMagasin?.toLowerCase().includes(query)
+        (vehicle) =>
+          vehicle.nomVehicule.toLowerCase().includes(query) ||
+          vehicle.codeVehicule.toLowerCase().includes(query) ||
+          vehicle.localisation.toLowerCase().includes(query)
       );
     }
 
+    // Filtre par disponibilité
+    if (showAvailableOnly) {
+      filtered = filtered.filter((vehicle) => vehicle.statutVehicule);
+    }
+
     return filtered;
-  }, [magasins, searchQuery]);
+  }, [vehicules, searchQuery, showAvailableOnly]);
 
   const refreshData = async () => {
     setRefreshing(true);
     try {
-      await fetchMagasins();
+      await fetchVehicules();
     } catch (error) {
-      console.error("Error refreshing stores:", error);
+      console.error("Error refreshing vehicles:", error);
     } finally {
       setRefreshing(false);
     }
@@ -61,31 +68,45 @@ export default function StoresListScreen() {
     refreshData();
   }, []);
 
-  // Composant Carte Magasin (vue grille)
-  const StoreGridCard = ({ store }: { store: Magasin }) => (
+  // Composant Carte Véhicule (vue grille)
+  const VehicleGridCard = ({ vehicle }: { vehicle: Vehicule }) => (
     <TouchableOpacity
-      onPress={() =>
+      onPress={() => {
+        console.log(vehicle);
         router.push({
-          pathname: "/screen/DashbordScreen/store/[id]",
-          params: { id: store.idMagasin.toString() },
-        })
-      }
+          pathname: "/screen/DashbordScreen/vehicules/[id]",
+          params: { id: vehicle.idVehicule },
+        });
+      }}
       className="bg-white rounded-2xl p-3 shadow-sm border border-gray-200 active:opacity-90 w-[48%] mb-4"
     >
       <View>
-        {/* Image du magasin */}
+        {/* Image du véhicule */}
         <View className="relative mb-3">
-          {store.photo ? (
+          {vehicle.photoVehicule ? (
             <Image
-              source={{ uri: store.photo }}
+              source={{ uri: vehicle.photoVehicule }}
               className="w-full h-32 rounded-xl"
               resizeMode="cover"
             />
           ) : (
-            <View className="w-full h-32 bg-orange-50 rounded-xl items-center justify-center">
-              <StoreIcon size={40} color="#F97316" />
+            <View className="w-full h-32 bg-indigo-50 rounded-xl items-center justify-center">
+              <Car size={40} color="#4F46E5" />
             </View>
           )}
+
+          {/* Badge de statut */}
+          <View
+            className={`absolute top-2 right-2 px-2 py-1 rounded-full ${
+              vehicle.statutVehicule ? "bg-green-100" : "bg-red-100"
+            }`}
+          >
+            {vehicle.statutVehicule ? (
+              <CheckCircle size={12} color="#10B981" />
+            ) : (
+              <XCircle size={12} color="#EF4444" />
+            )}
+          </View>
         </View>
 
         {/* Informations */}
@@ -94,38 +115,42 @@ export default function StoresListScreen() {
             className="font-bold text-gray-800 text-sm mb-1"
             numberOfLines={1}
           >
-            {store.nomMagasin}
+            {vehicle.nomVehicule}
           </Text>
 
           <View className="flex-row items-center mb-1">
+            <Gauge size={12} color="#64748B" />
+            <Text className="text-gray-500 text-xs ml-1">
+              {vehicle.nbKilometrage.toLocaleString()} km
+            </Text>
+          </View>
+
+          <View className="flex-row items-center mb-2">
             <MapPin size={12} color="#64748B" />
             <Text
               className="text-gray-500 text-xs ml-1 flex-1"
               numberOfLines={1}
             >
-              {store.localiteMagasin}
+              {vehicle.localisation}
             </Text>
           </View>
 
-          {store.contactMagasin && (
-            <View className="flex-row items-center mb-2">
-              <Phone size={12} color="#64748B" />
-              <Text className="text-gray-500 text-xs ml-1" numberOfLines={1}>
-                {store.contactMagasin}
-              </Text>
-            </View>
-          )}
+          <Text className="text-gray-400 text-xs">
+            {vehicle.typeVoiture?.nom || "Non spécifié"}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 
-  if (loadingMagasins && !refreshing) {
+  if (loadingVehicules && !refreshing) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#079C48" />
-          <Text className="text-gray-500 mt-4">Chargement des magasins...</Text>
+          <Text className="text-gray-500 mt-4">
+            Chargement des véhicules...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -145,17 +170,17 @@ export default function StoresListScreen() {
             </TouchableOpacity>
             <View>
               <Text className="text-xl font-bold text-gray-800">
-                Mes magasins
+                Mes véhicules
               </Text>
               <Text className="text-gray-500 text-xs">
-                {magasins.length} magasin{magasins.length !== 1 ? "s" : ""}
+                {vehicules.length} véhicule{vehicules.length !== 1 ? "s" : ""}
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
             onPress={() =>
-              router.push("/screen/DashbordScreen/form/CreateStoreScreen")
+              router.push("/screen/DashbordScreen/form/AddVehicleScreen")
             }
             className="bg-yellow-500 w-10 h-10 rounded-full items-center justify-center shadow-sm"
           >
@@ -163,11 +188,11 @@ export default function StoresListScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Barre de recherche et filtres */}
+        {/* Barre de recherche */}
         <View className="flex-row items-center gap-2">
           <View className="flex-1">
             <CustomInput
-              placeholder="Rechercher un magasin..."
+              placeholder="Rechercher un véhicule..."
               value={searchQuery}
               onChange={setSearchQuery}
               type="search"
@@ -177,7 +202,7 @@ export default function StoresListScreen() {
         </View>
       </View>
 
-      {/* Liste des magasins */}
+      {/* Liste des véhicules */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -191,40 +216,39 @@ export default function StoresListScreen() {
         }
       >
         <View className="p-4">
-          {filteredStores.length === 0 ? (
+          {filteredVehicles.length === 0 ? (
             <View className="items-center justify-center py-12">
               <View className="w-24 h-24 bg-gray-100 rounded-full items-center justify-center mb-4">
-                <StoreIcon size={40} color="#9CA3AF" />
+                <Car size={40} color="#9CA3AF" />
               </View>
               <Text className="text-gray-500 text-lg font-medium mb-2">
-                Aucun magasin trouvé
+                Aucun véhicule trouvé
               </Text>
               <Text className="text-gray-400 text-center mb-6">
-                {searchQuery || showActiveOnly
-                  ? "Aucun magasin ne correspond à vos critères."
-                  : "Vous n'avez pas encore créé de magasin."}
+                {searchQuery || showAvailableOnly
+                  ? "Aucun véhicule ne correspond à vos critères."
+                  : "Vous n'avez pas encore ajouté de véhicule."}
               </Text>
-              {!searchQuery && !showActiveOnly && (
+              {!searchQuery && !showAvailableOnly && (
                 <TouchableOpacity
                   onPress={() =>
-                    router.push("/screen/DashbordScreen/form/CreateStoreScreen")
+                    router.push("/screen/DashbordScreen/form/AddVehicleScreen")
                   }
                   className="bg-primary px-6 py-3 rounded-lg"
                 >
-                  <Text className="text-black font-medium">
-                    Créer mon premier magasin
+                  <Text className="text-white font-medium">
+                    Ajouter mon premier véhicule
                   </Text>
                 </TouchableOpacity>
               )}
             </View>
           ) : (
             <View className="flex-row flex-wrap justify-between">
-              {filteredStores.map((store) => (
-                <StoreGridCard key={store.idMagasin} store={store} />
+              {filteredVehicles.map((vehicle) => (
+                <VehicleGridCard key={vehicle.idVehicule} vehicle={vehicle} />
               ))}
             </View>
           )}
-
           {/* Espace pour le padding */}
           {/* <View className="h-24" /> */}
         </View>

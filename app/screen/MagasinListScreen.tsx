@@ -17,13 +17,13 @@ import {
     Dimensions,
     Image,
     RefreshControl,
-    SafeAreaView,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 40) / 2;

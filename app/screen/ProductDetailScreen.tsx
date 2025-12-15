@@ -14,12 +14,12 @@ import {
     Alert,
     Image,
     Linking,
-    SafeAreaView,
     ScrollView,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Badge from '@/components/common/Badge';
 import { Stock } from '@/Types/Stock';

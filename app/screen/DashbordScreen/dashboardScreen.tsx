@@ -1,20 +1,19 @@
-import { ProductCard } from '@/components/dashboard/ProductCard';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { useMerchant } from '@/context/Merchant';
-import { useTransporteur } from '@/context/Transporteur';
-import { formatNumber } from '@/utils/formatters';
-import { useRouter } from 'expo-router';
+import { StatCard } from "@/components/dashboard/StatCard";
+import { useMerchant } from "@/context/Merchant";
+import { useTransporteur } from "@/context/Transporteur";
+import { formatNumber } from "@/utils/formatters";
+import { useRouter } from "expo-router";
 import {
   Car,
-  ChevronRight,
   Globe,
   Package,
   PackageOpen,
   Plus,
   Store,
-  Warehouse
-} from 'lucide-react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+  Truck,
+  Warehouse,
+} from "lucide-react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -22,11 +21,11 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -46,21 +45,26 @@ export default function DashboardScreen() {
 
     // TEMPORAIRE: Utiliser un ID utilisateur codé en dur pour le développement
     return {
-      idActeur: 'd48lrq5lpgw53adl0yq1',
-      nomActeur: 'Macky', // Ou récupérer depuis une API si possible, sinon valeur par défaut
-      typeActeur: [{ libelle: 'Marchand' }],
+      idActeur: "d48lrq5lpgw53adl0yq1",
+      nomActeur: "Macky", // Ou récupérer depuis une API si possible, sinon valeur par défaut
+      typeActeur: [{ libelle: "Marchand" }],
       // Ajouter d'autres champs si nécessaire
     };
   }, []);
 
   // Extraire nomActeur et typeActeur
-  const nomActeur = user?.nomActeur || 'Utilisateur';
-  const typeActeur = user?.typeActeur?.[0]?.libelle || 'Acteur';
+  const nomActeur = user?.nomActeur || "Utilisateur";
+  const typeActeur = user?.typeActeur?.[0]?.libelle || "Acteur";
 
   // Vérifier si l'utilisateur est transporteur
   const isTransporteur = useMemo(() => {
     const libelle = user?.typeActeur?.[0]?.libelle;
-    return libelle ? libelle.toLowerCase().includes('transport') : false;
+    return libelle ? libelle.toLowerCase().includes("transport") : false;
+  }, [user]);
+
+  const fournisseur = useMemo(() => {
+    const libelle = user?.typeActeur?.[0]?.libelle;
+    return libelle ? libelle.toLowerCase().includes("fournisseur") : false;
   }, [user]);
 
   // Fonction pour rafraîchir toutes les données
@@ -83,8 +87,10 @@ export default function DashboardScreen() {
 
       await Promise.all(promises);
     } catch (error: any) {
-      setDashboardError(error.message || 'Erreur lors du chargement des données');
-      console.error('Error refreshing dashboard:', error);
+      setDashboardError(
+        error.message || "Erreur lors du chargement des données"
+      );
+      console.error("Error refreshing dashboard:", error);
     } finally {
       setRefreshing(false);
     }
@@ -103,13 +109,13 @@ export default function DashboardScreen() {
       const totalZones = merchant.zonesProduction.length;
 
       // Véhicules du marchand + transporteur (si applicable)
-      const totalVehicles = merchant.vehicules.length +
+      const totalVehicles =
+        merchant.vehicules.length +
         (isTransporteur ? transporteur.vehicules.length : 0);
 
       // Produits par magasin
-      const productsPerStore = totalStores > 0
-        ? (totalProducts / totalStores).toFixed(1)
-        : '0';
+      const productsPerStore =
+        totalStores > 0 ? (totalProducts / totalStores).toFixed(1) : "0";
 
       return {
         totalProducts,
@@ -121,14 +127,23 @@ export default function DashboardScreen() {
     };
 
     return calculateKPIs();
-  }, [merchant.stocks, merchant.magasins, merchant.zonesProduction, merchant.vehicules, transporteur.vehicules, isTransporteur]);
+  }, [
+    merchant.stocks,
+    merchant.magasins,
+    merchant.zonesProduction,
+    merchant.vehicules,
+    transporteur.vehicules,
+    isTransporteur,
+  ]);
 
   // Gestion du chargement
   const isLoading = useMemo(() => {
-    return merchant.loadingMagasins ||
+    return (
+      merchant.loadingMagasins ||
       merchant.loadingStocks ||
       merchant.loadingZones ||
-      (isTransporteur && transporteur.loadingVehicules);
+      (isTransporteur && transporteur.loadingVehicules)
+    );
   }, [merchant, transporteur, isTransporteur]);
 
   // Calcul de la largeur des cartes d'actions rapides
@@ -174,13 +189,12 @@ export default function DashboardScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={refreshData}
-            colors={['#079C48']}
+            colors={["#079C48"]}
             tintColor="#079C48"
           />
         }
       >
         <View className="p-4 space-y-6">
-
           {/* Section KPI Principaux */}
           <View>
             {/* Grille 2x2 pour les KPI */}
@@ -192,6 +206,11 @@ export default function DashboardScreen() {
                   icon={Package}
                   color="#079C48"
                   subtitle={`${kpis.productsPerStore} par magasin`}
+                  onPress={() =>
+                    router.push(
+                      "/screen/DashbordScreen/produits/ProductsListScreen"
+                    )
+                  }
                 />
               </View>
 
@@ -202,7 +221,9 @@ export default function DashboardScreen() {
                   icon={Store}
                   color="#EA580C"
                   subtitle="Points de vente"
-                  onPress={() => router.push('/screen/DashbordScreen/store/StoresListScreen')}
+                  onPress={() =>
+                    router.push("/screen/DashbordScreen/store/StoresListScreen")
+                  }
                 />
               </View>
 
@@ -213,6 +234,9 @@ export default function DashboardScreen() {
                   icon={Globe}
                   color="#8B5CF6"
                   subtitle="Zones actives"
+                  onPress={() =>
+                    router.push("/screen/DashbordScreen/zone/ZonesListScreen")
+                  }
                 />
               </View>
 
@@ -223,6 +247,11 @@ export default function DashboardScreen() {
                   icon={Car}
                   color="#3B82F6"
                   subtitle="Disponibles"
+                  onPress={() =>
+                    router.push(
+                      "/screen/DashbordScreen/vehicules/VehiclesListScreen"
+                    )
+                  }
                 />
               </View>
             </View>
@@ -230,15 +259,19 @@ export default function DashboardScreen() {
 
           {/* Section Actions rapides */}
           <View>
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-bold text-gray-800">Actions rapides</Text>
+            <View className="flex-row items-center justify-between mb-3 pt-3">
+              <Text className="text-lg font-bold text-gray-800">
+                Actions rapides
+              </Text>
             </View>
 
             {/* Grille 2x2 pour les actions rapides */}
             <View className="flex-row flex-wrap" style={{ gap: 12 }}>
               {/* Ajouter un produit */}
               <TouchableOpacity
-                onPress={() => router.push('/screen/DashbordScreen/form/AddProductScreen')}
+                onPress={() =>
+                  router.push("/screen/DashbordScreen/form/AddProductScreen")
+                }
                 style={{ width: quickActionWidth }}
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
               >
@@ -255,7 +288,9 @@ export default function DashboardScreen() {
 
               {/* Créer un magasin */}
               <TouchableOpacity
-                onPress={() => router.push('/screen/DashbordScreen/form/CreateStoreScreen')}
+                onPress={() =>
+                  router.push("/screen/DashbordScreen/form/CreateStoreScreen")
+                }
                 style={{ width: quickActionWidth }}
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
               >
@@ -272,7 +307,9 @@ export default function DashboardScreen() {
 
               {/* Ajouter un véhicule */}
               <TouchableOpacity
-                onPress={() => router.push('/screen/DashbordScreen/form/AddVehicleScreen')}
+                onPress={() =>
+                  router.push("/screen/DashbordScreen/form/AddVehicleScreen")
+                }
                 style={{ width: quickActionWidth }}
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
               >
@@ -289,7 +326,11 @@ export default function DashboardScreen() {
 
               {/* Créer une zone */}
               <TouchableOpacity
-                onPress={() => router.push('/screen/DashbordScreen/form/AddProductionZoneScreen')}
+                onPress={() =>
+                  router.push(
+                    "/screen/DashbordScreen/form/AddProductionZoneScreen"
+                  )
+                }
                 style={{ width: quickActionWidth }}
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
               >
@@ -303,11 +344,27 @@ export default function DashboardScreen() {
                   Zone de production
                 </Text>
               </TouchableOpacity>
+              {/* icon intrant */}
+              <TouchableOpacity
+                onPress={() => console.log("Ajouter un intrant")}
+                style={{ width: quickActionWidth }}
+                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
+              >
+                <View className="w-14 h-14 bg-blue-100 rounded-full items-center justify-center mb-3">
+                  <Truck size={24} color="#3B82F6" />
+                </View>
+                <Text className="font-medium text-gray-800 text-center text-sm mb-1">
+                  Ajouter un intrant
+                </Text>
+                <Text className="text-gray-500 text-xs text-center">
+                  Intrants
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
           {/* Section Produits récents */}
-          {merchant.stocks.length > 0 && (
+          {/* {merchant.stocks.length > 0 && (
             <View>
               <View className="flex-row items-center justify-between mb-4">
                 <Text className="text-lg font-bold text-gray-800">Produits récents</Text>
@@ -326,16 +383,17 @@ export default function DashboardScreen() {
                 ))}
               </View>
             </View>
-          )}
+          )} */}
 
           {/* Espace pour le bottom padding */}
-          <View className="h-20" />
+          {/* <View className="h-20" /> */}
         </View>
       </ScrollView>
 
-      {/* Bouton d'action flottant */}
       <TouchableOpacity
-        onPress={() => router.push('/screen/DashbordScreen/form/AddProductScreen')}
+        onPress={() =>
+          router.push("/screen/DashbordScreen/form/AddProductScreen")
+        }
         className="absolute bottom-6 right-6 bg-orange-500 w-14 h-14 rounded-full items-center justify-center shadow-lg"
       >
         <Plus size={24} color="black" />
