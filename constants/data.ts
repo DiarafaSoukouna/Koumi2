@@ -7,8 +7,8 @@ import {
 export const promotions = [
     {
         id: 1,
-        title: "la Reine Lalli",
-        subtitle: "La Reine des neige",
+        title: "Promotions spéciales",
+        subtitle: "Découvrez",
         bgColor: '#EA580C',
         icon: 'Zap' as const,
         image: 'https://via.placeholder.com/100',
