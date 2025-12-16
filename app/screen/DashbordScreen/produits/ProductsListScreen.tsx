@@ -26,13 +26,13 @@ import {
   Image,
   Modal,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Composant de carte produit (mode grille)
 const ProductGridCard = ({
@@ -349,7 +349,7 @@ export default function ProductsListScreen() {
   // Navigation vers le détail du produit
   const navigateToProductDetail = (productId: string) => {
     router.push({
-      pathname: "/screen/DashbordScreen/ProductDetailScreen",
+      pathname: "/screen/DashbordScreen/produits/[id]",
       params: { id: productId },
     });
   };
@@ -672,7 +672,7 @@ export default function ProductsListScreen() {
             </View>
 
             {/* Prix */}
-            <View className="mb-6">
+            {/* <View className="mb-6">
               <Text className="text-gray-800 font-bold mb-3">Prix (F CFA)</Text>
               <View className="flex-row gap-3">
                 <View className="flex-1">
@@ -700,7 +700,7 @@ export default function ProductsListScreen() {
                   />
                 </View>
               </View>
-            </View>
+            </View> */}
 
             {/* Magasins populaires */}
             <View className="mb-6">
@@ -719,8 +719,8 @@ export default function ProductsListScreen() {
                   }}
                   className={`flex-row items-center px-4 py-2 rounded-full mr-2 ${
                     tempSelectedMagasin === null
-                      ? "bg-primary border border-primary"
-                      : "bg-gray-100"
+                      ? "bg-yellow-500 border border-yellow-500"
+                      : "bg-yellow-500"
                   }`}
                 >
                   <Store
@@ -751,7 +751,7 @@ export default function ProductsListScreen() {
                       }}
                       className={`flex-row items-center px-4 py-2 rounded-full mr-2 ${
                         tempSelectedMagasin === magasin.idMagasin
-                          ? "bg-primary border border-primary"
+                          ? "bg-yellow-500 border border-yellow-500"
                           : "bg-gray-100"
                       }`}
                     >
@@ -791,7 +791,7 @@ export default function ProductsListScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={applyFilters}
-                className="flex-1 py-3 bg-primary rounded-xl"
+                className="flex-1 py-3 bg-yellow-500 rounded-xl"
               >
                 <Text className="text-white text-center font-medium">
                   Appliquer

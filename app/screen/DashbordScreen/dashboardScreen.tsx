@@ -1,4 +1,5 @@
 import { StatCard } from "@/components/dashboard/StatCard";
+import { useIntrant } from "@/context/Intrant";
 import { useMerchant } from "@/context/Merchant";
 import { useTransporteur } from "@/context/Transporteur";
 import { formatNumber } from "@/utils/formatters";
@@ -6,11 +7,11 @@ import { useRouter } from "expo-router";
 import {
   Car,
   Globe,
+  Leaf,
   Package,
   PackageOpen,
   Plus,
   Store,
-  Truck,
   Warehouse,
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -33,6 +34,7 @@ export default function DashboardScreen() {
   // Contextes
   const merchant = useMerchant();
   const transporteur = useTransporteur();
+  const intrant = useIntrant();
 
   // États
   const [refreshing, setRefreshing] = useState(false);
@@ -84,6 +86,10 @@ export default function DashboardScreen() {
       if (isTransporteur && transporteur.fetchVehicules) {
         promises.push(transporteur.fetchVehicules());
       }
+      // charger les données intrant si utilisateur est fournisseur
+      if (fournisseur && intrant.getAllByActeur) {
+        promises.push(intrant.getAllByActeur());
+      }
 
       await Promise.all(promises);
     } catch (error: any) {
@@ -107,6 +113,7 @@ export default function DashboardScreen() {
       const totalProducts = merchant.stocks.length;
       const totalStores = merchant.magasins.length;
       const totalZones = merchant.zonesProduction.length;
+      const totalIntrants = intrant.intrantList.length;
 
       // Véhicules du marchand + transporteur (si applicable)
       const totalVehicles =
@@ -123,6 +130,7 @@ export default function DashboardScreen() {
         totalZones,
         totalVehicles,
         productsPerStore,
+        totalIntrants,
       };
     };
 
@@ -134,6 +142,7 @@ export default function DashboardScreen() {
     merchant.vehicules,
     transporteur.vehicules,
     isTransporteur,
+    intrant.intrantList,
   ]);
 
   // Gestion du chargement
@@ -254,6 +263,16 @@ export default function DashboardScreen() {
                   }
                 />
               </View>
+              <View style={{ width: quickActionWidth }}>
+                <StatCard
+                  title="Intrants agricoles"
+                  value={formatNumber(kpis.totalIntrants)}
+                  icon={PackageOpen}
+                  color="#079C48"
+                  subtitle="Disponibles"
+                  onPress={() => router.push("/screen/DashbordScreen/intrants")}
+                />
+              </View>
             </View>
           </View>
 
@@ -346,12 +365,14 @@ export default function DashboardScreen() {
               </TouchableOpacity>
               {/* icon intrant */}
               <TouchableOpacity
-                onPress={() => console.log("Ajouter un intrant")}
+                onPress={() =>
+                  router.push("/screen/DashbordScreen/form/AddIntrantScreen")
+                }
                 style={{ width: quickActionWidth }}
                 className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
               >
                 <View className="w-14 h-14 bg-blue-100 rounded-full items-center justify-center mb-3">
-                  <Truck size={24} color="#3B82F6" />
+                  <Leaf size={24} color="#3B82F6" />
                 </View>
                 <Text className="font-medium text-gray-800 text-center text-sm mb-1">
                   Ajouter un intrant
@@ -394,7 +415,7 @@ export default function DashboardScreen() {
         onPress={() =>
           router.push("/screen/DashbordScreen/form/AddProductScreen")
         }
-        className="absolute bottom-6 right-6 bg-orange-500 w-14 h-14 rounded-full items-center justify-center shadow-lg"
+        className="absolute bottom-6 right-6 bg-yellow-500 w-14 h-14 rounded-full items-center justify-center shadow-lg"
       >
         <Plus size={24} color="black" />
       </TouchableOpacity>

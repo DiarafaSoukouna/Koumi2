@@ -114,7 +114,7 @@ export default function HomeScreen() {
           <FeaturedStoresList
             stores={magasins}
             onStorePress={handleStorePress}
-            onSeeAllPress={() => console.log("See all stores")}
+            onSeeAllPress={() => router.push("/(tabs)/Magasin")}
           />
 
           {/* Produits populaires */}
