@@ -65,7 +65,8 @@ export interface UpdateIntrantData {
 }
 
 export interface IntrantContextTypes {
-    intrantList: Intrant[];
+    GetAllIntranByActeur: Intrant[];
+    GetAllintrantList: Intrant[];
     loading: boolean;
     error: string | null;
     loadingByActeur: boolean;

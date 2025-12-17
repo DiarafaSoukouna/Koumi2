@@ -35,7 +35,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function IntrantDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { intrantList, loading, deleteIntrant, getAllByActeur } = useIntrant();
+  const { GetAllIntranByActeur, loading, deleteIntrant, getAllByActeur } =
+    useIntrant();
 
   const [intrant, setIntrant] = useState<Intrant | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(true);
@@ -45,13 +46,15 @@ export default function IntrantDetailScreen() {
   }, [id]);
 
   useEffect(() => {
-    if (intrantList.length > 0 && id) {
-      const foundIntrant = intrantList.find((item) => item.idIntrant === id);
+    if (GetAllIntranByActeur.length > 0 && id) {
+      const foundIntrant = GetAllIntranByActeur.find(
+        (item) => item.idIntrant === id
+      );
       if (foundIntrant) {
         setIntrant(foundIntrant);
       }
     }
-  }, [intrantList, id]);
+  }, [GetAllIntranByActeur, id]);
 
   const loadIntrant = async () => {
     try {

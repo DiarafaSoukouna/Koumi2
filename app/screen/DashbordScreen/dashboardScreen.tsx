@@ -61,12 +61,12 @@ export default function DashboardScreen() {
   // Vérifier si l'utilisateur est transporteur
   const isTransporteur = useMemo(() => {
     const libelle = user?.typeActeur?.[0]?.libelle;
-    return libelle ? libelle.toLowerCase().includes("transport") : false;
+    return libelle ? libelle.toLowerCase().includes("Transporteur") : false;
   }, [user]);
 
-  const fournisseur = useMemo(() => {
+  const isfournisseur = useMemo(() => {
     const libelle = user?.typeActeur?.[0]?.libelle;
-    return libelle ? libelle.toLowerCase().includes("fournisseur") : false;
+    return libelle ? libelle.toLowerCase().includes("Fournisseur") : false;
   }, [user]);
 
   // Fonction pour rafraîchir toutes les données
@@ -82,12 +82,12 @@ export default function DashboardScreen() {
       promises.push(merchant.fetchStocks());
       promises.push(merchant.fetchZonesProduction());
 
-      // Charger les données du transporteur seulement si l'utilisateur est transporteur
-      if (isTransporteur && transporteur.fetchVehicules) {
+      // Charger les données du transporteur
+      if (transporteur.fetchVehicules) {
         promises.push(transporteur.fetchVehicules());
       }
-      // charger les données intrant si utilisateur est fournisseur
-      if (fournisseur && intrant.getAllByActeur) {
+      // charger les données intrant
+      if (intrant.getAllByActeur) {
         promises.push(intrant.getAllByActeur());
       }
 
@@ -100,7 +100,7 @@ export default function DashboardScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, [merchant, transporteur, isTransporteur]);
+  }, [merchant, transporteur, isTransporteur, isfournisseur]);
 
   // Rafraîchir au montage
   useEffect(() => {
@@ -113,12 +113,8 @@ export default function DashboardScreen() {
       const totalProducts = merchant.stocks.length;
       const totalStores = merchant.magasins.length;
       const totalZones = merchant.zonesProduction.length;
-      const totalIntrants = intrant.intrantList.length;
-
-      // Véhicules du marchand + transporteur (si applicable)
-      const totalVehicles =
-        merchant.vehicules.length +
-        (isTransporteur ? transporteur.vehicules.length : 0);
+      const totalIntrants = intrant.GetAllIntranByActeur.length;
+      const totalVehicles = transporteur.vehicules.length;
 
       // Produits par magasin
       const productsPerStore =
@@ -139,10 +135,8 @@ export default function DashboardScreen() {
     merchant.stocks,
     merchant.magasins,
     merchant.zonesProduction,
-    merchant.vehicules,
     transporteur.vehicules,
-    isTransporteur,
-    intrant.intrantList,
+    intrant.GetAllIntranByActeur,
   ]);
 
   // Gestion du chargement
@@ -151,9 +145,10 @@ export default function DashboardScreen() {
       merchant.loadingMagasins ||
       merchant.loadingStocks ||
       merchant.loadingZones ||
-      (isTransporteur && transporteur.loadingVehicules)
+      transporteur.loadingVehicules ||
+      intrant.loadingByActeur
     );
-  }, [merchant, transporteur, isTransporteur]);
+  }, [merchant, transporteur, intrant]);
 
   // Calcul de la largeur des cartes d'actions rapides
   const quickActionWidth = useMemo(() => {

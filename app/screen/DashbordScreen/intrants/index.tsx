@@ -28,8 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function IntrantListScreen() {
   const router = useRouter();
   const {
-    intrantList,
-    loading,
+    GetAllIntranByActeur,
     error,
     fetchIntrant,
     deleteIntrant,
@@ -40,7 +39,7 @@ export default function IntrantListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredIntrants, setFilteredIntrants] =
-    useState<Intrant[]>(intrantList);
+    useState<Intrant[]>(GetAllIntranByActeur);
   const [activeFilter, setActiveFilter] = useState<
     "all" | "available" | "expired"
   >("all");
@@ -52,7 +51,7 @@ export default function IntrantListScreen() {
 
   useEffect(() => {
     filterIntrants();
-  }, [searchQuery, intrantList, activeFilter]);
+  }, [searchQuery, GetAllIntranByActeur, activeFilter]);
 
   const loadIntrants = async () => {
     try {
@@ -69,7 +68,7 @@ export default function IntrantListScreen() {
   };
 
   const filterIntrants = () => {
-    let filtered = intrantList;
+    let filtered = GetAllIntranByActeur;
 
     // Filtre par recherche
     if (searchQuery) {
@@ -268,7 +267,7 @@ export default function IntrantListScreen() {
     );
   };
 
-  if (loadingByActeur && intrantList.length === 0) {
+  if (loadingByActeur && GetAllIntranByActeur.length === 0) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
         <View className="flex-1 items-center justify-center">
@@ -369,20 +368,20 @@ export default function IntrantListScreen() {
         <View className="flex-row justify-around">
           <View className="items-center">
             <Text className="text-2xl font-bold text-gray-800">
-              {intrantList.length}
+              {GetAllIntranByActeur.length}
             </Text>
             <Text className="text-gray-500 text-xs">Total intrants</Text>
           </View>
           {/* <View className="items-center">
             <Text className="text-2xl font-bold text-green-600">
-              {intrantList.filter((i) => i.statutIntrant).length}
+              {GetAllIntranByActeur.filter((i) => i.statutIntrant).length}
             </Text>
             <Text className="text-gray-500 text-xs">Disponibles</Text>
           </View> */}
           <View className="items-center">
             <Text className="text-2xl font-bold text-red-600">
               {
-                intrantList.filter((i) => {
+                GetAllIntranByActeur.filter((i) => {
                   if (!i.dateExpiration) return false;
                   return new Date(i.dateExpiration) < new Date();
                 }).length
