@@ -327,6 +327,21 @@ export default function ProductDetailScreen() {
                 </Text>
               </View>
             </View>
+            <View className="flex-row space-x-3 mb-8">
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/screen/DashbordScreen/form/AddProductScreen",
+                    params: { id: product.idStock },
+                  })
+                }
+                className="flex-1 bg-yellow-500 py-4 rounded-lg items-center"
+              >
+                <Text className="text-white font-medium">
+                  Modifier le produit
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>

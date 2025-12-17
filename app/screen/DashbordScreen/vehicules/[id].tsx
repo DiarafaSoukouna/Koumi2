@@ -438,12 +438,12 @@ export default function VehicleDetailScreen() {
 
             <TouchableOpacity
               onPress={() =>
-                Alert.alert(
-                  "Information",
-                  "La modification du véhicule sera bientôt disponible"
-                )
+                router.push({
+                  pathname: "/screen/DashbordScreen/form/AddVehicleScreen",
+                  params: { id: vehicle.idVehicule },
+                })
               }
-              className="flex-row items-center justify-center py-4 bg-[#079C48] rounded-xl mb-3"
+              className="flex-row items-center justify-center py-4 bg-yellow-500 rounded-xl mb-3"
               activeOpacity={0.8}
             >
               <Edit size={22} color="white" className="mr-3" />

@@ -252,9 +252,7 @@ export default function DashboardScreen() {
                   color="#3B82F6"
                   subtitle="Disponibles"
                   onPress={() =>
-                    router.push(
-                      "/screen/DashbordScreen/vehicules/VehiclesListScreen"
-                    )
+                    router.push("/screen/DashbordScreen/vehicules")
                   }
                 />
               </View>

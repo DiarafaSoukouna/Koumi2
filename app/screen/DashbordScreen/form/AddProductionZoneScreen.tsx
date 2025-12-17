@@ -1,14 +1,11 @@
-import { FormInput } from '@/components/common/CustomInput';
-import { ImagePickerSection } from '@/components/common/ImagePickerSection';
-import { useMerchant } from '@/context/Merchant';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
-import {
-  ArrowLeft,
-  MapPin
-} from 'lucide-react-native';
-import React, { useState } from 'react';
+import { FormInput } from "@/components/common/CustomInput";
+import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useMerchant } from "@/context/Merchant";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft, MapPin } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -16,17 +13,27 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AddProductionZoneScreen() {
   const router = useRouter();
-  const { createZoneProduction, updateZoneProduction, loadingZones } = useMerchant();
-
+  const {
+    createZoneProduction,
+    updateZoneProduction,
+    loadingZones,
+    fetchZonesProduction,
+    zonesProduction,
+  } = useMerchant();
+  const params = useLocalSearchParams();
+  const zoneId = params.id as string | undefined;
+  const isEditMode = !!zoneId;
+  const idActeur = "d48lrq5lpgw53adl0yq1";
   const generateCodeZone = () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let code = '';
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let code = "";
     for (let i = 0; i < 4; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       code += characters.charAt(randomIndex);
@@ -35,36 +42,61 @@ export default function AddProductionZoneScreen() {
   };
 
   const [formData, setFormData] = useState({
-    nomZoneProduction: '',
-    latitude: '',
-    longitude: '',
+    nomZoneProduction: "",
+    latitude: "",
+    longitude: "",
     codeZone: generateCodeZone(),
     acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
-    image: ''
+    image: "",
   });
 
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState("");
   const [imageFile, setImageFile] = useState<string | null>(null);
   const [errors, setErrors] = useState({
-    nomZoneProduction: '',
-    latitude: '',
-    longitude: '',
+    nomZoneProduction: "",
+    latitude: "",
+    longitude: "",
   });
 
   // Effacer les erreurs quand l'utilisateur modifie
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
+
+  useEffect(() => {
+    if (isEditMode && zonesProduction?.length) {
+      const zone = zonesProduction.find((z) => z.idZoneProduction === zoneId);
+
+      if (zone) {
+        setFormData({
+          nomZoneProduction: zone.nomZoneProduction || "",
+          latitude: zone.latitude?.toString() || "",
+          longitude: zone.longitude?.toString() || "",
+          codeZone: zone.codeZone || "",
+          acteur: { idActeur },
+          image: zone.photoZone || "",
+        });
+
+        if (zone.photoZone) {
+          setImagePreview(zone.photoZone);
+        }
+      }
+    }
+  }, [isEditMode, zoneId, zonesProduction]);
 
   // Sélection d'image
   const pickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Permission d\'accès à la galerie requise');
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission requise",
+          "Permission d'accès à la galerie requise"
+        );
         return;
       }
 
@@ -80,8 +112,8 @@ export default function AddProductionZoneScreen() {
         setImageFile(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Erreur sélection image:', error);
-      Alert.alert('Erreur', 'Erreur lors de la sélection de l\'image');
+      console.error("Erreur sélection image:", error);
+      Alert.alert("Erreur", "Erreur lors de la sélection de l'image");
     }
   };
 
@@ -89,8 +121,11 @@ export default function AddProductionZoneScreen() {
   const takePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Permission d\'accès à la caméra requise');
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission requise",
+          "Permission d'accès à la caméra requise"
+        );
         return;
       }
 
@@ -105,8 +140,8 @@ export default function AddProductionZoneScreen() {
         setImageFile(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Erreur prise photo:', error);
-      Alert.alert('Erreur', 'Erreur lors de la prise de photo');
+      console.error("Erreur prise photo:", error);
+      Alert.alert("Erreur", "Erreur lors de la prise de photo");
     }
   };
 
@@ -114,45 +149,47 @@ export default function AddProductionZoneScreen() {
   const getCurrentLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Permission de localisation requise');
+      if (status !== "granted") {
+        Alert.alert("Permission requise", "Permission de localisation requise");
         return;
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         latitude: location.coords.latitude.toString(),
         longitude: location.coords.longitude.toString(),
       }));
     } catch (error) {
-      console.error('Erreur géolocalisation:', error);
-      Alert.alert('Erreur', 'Impossible d\'obtenir la localisation actuelle');
+      console.error("Erreur géolocalisation:", error);
+      Alert.alert("Erreur", "Impossible d'obtenir la localisation actuelle");
     }
   };
 
   // Validation du formulaire
   const validateForm = () => {
     const newErrors = {
-      nomZoneProduction: '',
-      latitude: '',
-      longitude: '',
-      acteur: 'd48lrq5lpgw53adl0yq1',
+      nomZoneProduction: "",
+      latitude: "",
+      longitude: "",
+      acteur: "d48lrq5lpgw53adl0yq1",
     };
     let isValid = true;
 
     if (!formData.nomZoneProduction.trim()) {
-      newErrors.nomZoneProduction = 'Le nom de la zone est requis';
+      newErrors.nomZoneProduction = "Le nom de la zone est requis";
       isValid = false;
     }
 
     if (formData.latitude && !formData.longitude) {
-      newErrors.longitude = 'La longitude est requise si la latitude est renseignée';
+      newErrors.longitude =
+        "La longitude est requise si la latitude est renseignée";
       isValid = false;
     }
 
     if (formData.longitude && !formData.latitude) {
-      newErrors.latitude = 'La latitude est requise si la longitude est renseignée';
+      newErrors.latitude =
+        "La latitude est requise si la longitude est renseignée";
       isValid = false;
     }
 
@@ -177,17 +214,21 @@ export default function AddProductionZoneScreen() {
         codeZone: formData.codeZone,
       };
 
-      await createZoneProduction(zoneData);
-
-      Alert.alert('Succès', 'Zone de production créée avec succès', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      if (isEditMode && zoneId) {
+        await updateZoneProduction(zoneId, zoneData);
+        Alert.alert("Succès", "Zone modifiée avec succès", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        await createZoneProduction(zoneData);
+        Alert.alert("Succès", "Zone de production créée avec succès", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      }
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Erreur lors de la création');
+      Alert.alert("Erreur", error.message || "Erreur lors de la création");
     }
   };
-
-
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -202,10 +243,15 @@ export default function AddProductionZoneScreen() {
             </TouchableOpacity>
             <View>
               <Text className="text-xl font-bold text-gray-800">
-                Nouvelle zone de production
+                {isEditMode
+                  ? "Modifier la zone"
+                  : "Nouvelle zone de production"}
               </Text>
+
               <Text className="text-gray-500 text-xs">
-                Ajoutez une nouvelle zone pour vos cultures
+                {isEditMode
+                  ? "Modifiez les informations de la zone"
+                  : "Ajoutez une nouvelle zone pour vos cultures"}
               </Text>
             </View>
           </View>
@@ -213,7 +259,7 @@ export default function AddProductionZoneScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -224,7 +270,7 @@ export default function AddProductionZoneScreen() {
               onPickImage={pickImage}
               onTakePhoto={takePhoto}
               onRemoveImage={() => {
-                setImagePreview('');
+                setImagePreview("");
                 setImageFile(null);
               }}
               title="Photo de la zone"
@@ -237,7 +283,9 @@ export default function AddProductionZoneScreen() {
               label="Nom de la zone"
               placeholder="Ex: Champ principal, Serre Nord..."
               value={formData.nomZoneProduction}
-              onChange={value => handleInputChange('nomZoneProduction', value)}
+              onChange={(value) =>
+                handleInputChange("nomZoneProduction", value)
+              }
               error={errors.nomZoneProduction}
               required
             />
@@ -266,7 +314,7 @@ export default function AddProductionZoneScreen() {
                     label="Latitude"
                     placeholder="Ex: 4.0511"
                     value={formData.latitude}
-                    onChange={value => handleInputChange('latitude', value)}
+                    onChange={(value) => handleInputChange("latitude", value)}
                     error={errors.latitude}
                     type="number"
                     keyboardType="numbers-and-punctuation"
@@ -277,7 +325,7 @@ export default function AddProductionZoneScreen() {
                     label="Longitude"
                     placeholder="Ex: 9.7679"
                     value={formData.longitude}
-                    onChange={value => handleInputChange('longitude', value)}
+                    onChange={(value) => handleInputChange("longitude", value)}
                     error={errors.longitude}
                     type="number"
                     keyboardType="numbers-and-punctuation"
@@ -292,7 +340,7 @@ export default function AddProductionZoneScreen() {
               disabled={loadingZones}
               className={`
                 w-full py-4 rounded-lg items-center justify-center
-                ${loadingZones ? 'bg-primary/70' : 'bg-primary'}
+                ${loadingZones ? "bg-primary/70" : "bg-primary"}
                 active:opacity-90
               `}
               activeOpacity={0.8}
@@ -303,7 +351,7 @@ export default function AddProductionZoneScreen() {
                 </Text>
               ) : (
                 <Text className="text-black font-bold text-base">
-                  Créer la zone
+                  {isEditMode ? "Modifier la zone" : "Créer la zone"}
                 </Text>
               )}
             </TouchableOpacity>
@@ -311,7 +359,9 @@ export default function AddProductionZoneScreen() {
             {/* Informations supplémentaires */}
             <View className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
               <Text className="text-blue-800 text-xs">
-                💡 La zone de production sera utilisée pour associer vos cultures et suivre leur production. Vous pourrez y ajouter des informations détaillées plus tard.
+                💡 La zone de production sera utilisée pour associer vos
+                cultures et suivre leur production. Vous pourrez y ajouter des
+                informations détaillées plus tard.
               </Text>
             </View>
           </View>

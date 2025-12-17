@@ -170,7 +170,7 @@ export default function StoreDetailScreen() {
     if (storeProducts.length === 0) return;
 
     router.push({
-      pathname: "/screen/DashbordScreen/ProductsListScreen",
+      pathname: "/screen/DashbordScreen/produits/ProductsListScreen",
       params: {
         magasinId: store?.idMagasin,
         magasinName: store?.nomMagasin,
@@ -180,7 +180,7 @@ export default function StoreDetailScreen() {
 
   const navigateToProductDetail = (productId: string) => {
     router.push({
-      pathname: "/screen/DashbordScreen/ProductDetailScreen",
+      pathname: "/screen/DashbordScreen/produits/[id]",
       params: { id: productId },
     });
   };
@@ -258,10 +258,10 @@ export default function StoreDetailScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() =>
-                Alert.alert(
-                  "Information",
-                  "La modification du magasin sera bientôt disponible"
-                )
+                router.push({
+                  pathname: "/screen/DashbordScreen/form/CreateStoreScreen",
+                  params: { id: store.idMagasin },
+                })
               }
               className="p-2 bg-black/20 rounded-full"
             >

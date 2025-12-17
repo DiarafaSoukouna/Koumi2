@@ -1,18 +1,19 @@
-import { FormInput } from '@/components/common/CustomInput';
-import { FormSelect } from '@/components/common/CustomSelect';
-import { ImagePickerSection } from '@/components/common/ImagePickerSection';
-import { useMerchant } from '@/context/Merchant';
-import * as ImagePicker from 'expo-image-picker';
-import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
+import { FormInput } from "@/components/common/CustomInput";
+import { FormSelect } from "@/components/common/CustomSelect";
+import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useMerchant } from "@/context/Merchant";
+import { createMagasin } from "@/service/magasin/create";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ArrowLeft,
   MapPin,
   Navigation,
   Phone,
-  Store as StoreIcon
-} from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+  Store as StoreIcon,
+} from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -21,68 +22,103 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CreateStoreScreen() {
   const router = useRouter();
   const {
-    createMagasin,
+    updateMagasin,
+    magasins,
     loadingMagasins,
     pays,
     niveau1Pays,
     fetchPays,
     fetchNiveau1Pays,
+    fetchMagasins,
   } = useMerchant();
 
+  const { id } = useLocalSearchParams();
+  const isEditing = !!id;
+
   const [formData, setFormData] = useState({
-    nomMagasin: '',
-    localiteMagasin: '',
-    contactMagasin: '',
-    pays: '',
-    region: '',
-    latitude: '',
-    longitude: '',
-    photo: '',
+    nomMagasin: "",
+    localiteMagasin: "",
+    contactMagasin: "",
+    pays: "",
+    region: "",
+    latitude: "",
+    longitude: "",
+    photo: "",
     acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
   });
 
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState("");
   const [imageFile, setImageFile] = useState<string | null>(null);
   const [errors, setErrors] = useState({
-    nomMagasin: '',
-    localiteMagasin: '',
-    contactMagasin: '',
-    pays: '',
-    region: '',
+    nomMagasin: "",
+    localiteMagasin: "",
+    contactMagasin: "",
+    pays: "",
+    region: "",
   });
 
-  const [filteredRegions, setFilteredRegions] = useState<Array<{ value: string, label: string }>>([]);
+  const [filteredRegions, setFilteredRegions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   // Charger les données initiales
   useEffect(() => {
-    fetchPays();
-    fetchNiveau1Pays();
+    const loadData = async () => {
+      await Promise.all([fetchPays(), fetchNiveau1Pays()]);
+      if (isEditing) {
+        await fetchMagasins();
+      }
+    };
+    loadData();
   }, []);
 
+  // Pré-remplir le formulaire en mode édition
+  useEffect(() => {
+    if (isEditing && magasins.length > 0) {
+      const storeToEdit = magasins.find((m) => m.idMagasin === id);
+      if (storeToEdit) {
+        setFormData({
+          nomMagasin: storeToEdit.nomMagasin,
+          localiteMagasin: storeToEdit.localiteMagasin,
+          contactMagasin: storeToEdit.contactMagasin,
+          pays: storeToEdit.pays,
+          region: storeToEdit.niveau1Pays?.idNiveau1Pays || "",
+          latitude: storeToEdit.latitude || "",
+          longitude: storeToEdit.longitude || "",
+          photo: "", // Ne pas pré-remplir l'image fichier, juste la preview si dispo
+          acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+        });
+
+        setImagePreview(storeToEdit.photo || "");
+        setImageFile(storeToEdit.photo || null);
+      }
+    }
+  }, [id, magasins, isEditing]);
+
   // Options pour les pays
-  const paysOptions = pays.map(p => ({
+  const paysOptions = pays.map((p) => ({
     value: p.nomPays,
-    label: p.nomPays || 'Sans nom',
+    label: p.nomPays || "Sans nom",
   }));
 
   // Filtrer les régions quand le pays change
   useEffect(() => {
     if (formData.pays) {
       const regions = niveau1Pays
-        .filter(region => region.pays?.nomPays === formData.pays)
-        .map(region => ({
+        .filter((region) => region.pays?.nomPays === formData.pays)
+        .map((region) => ({
           value: region.idNiveau1Pays,
-          label: region.nomN1 || 'Sans nom',
+          label: region.nomN1 || "Sans nom",
         }));
       setFilteredRegions(regions);
-      if (!regions.find(r => r.value === formData.region)) {
-        setFormData(prev => ({ ...prev, region: '' }));
+      if (!regions.find((r) => r.value === formData.region)) {
+        setFormData((prev) => ({ ...prev, region: "" }));
       }
     } else {
       setFilteredRegions([]);
@@ -90,18 +126,22 @@ export default function CreateStoreScreen() {
   }, [formData.pays, niveau1Pays]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   // Image picker
   const pickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Permission d\'accès à la galerie requise');
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission requise",
+          "Permission d'accès à la galerie requise"
+        );
         return;
       }
 
@@ -117,16 +157,19 @@ export default function CreateStoreScreen() {
         setImageFile(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Erreur sélection image:', error);
-      Alert.alert('Erreur', 'Erreur lors de la sélection de l\'image');
+      console.error("Erreur sélection image:", error);
+      Alert.alert("Erreur", "Erreur lors de la sélection de l'image");
     }
   };
 
   const takePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Permission d\'accès à la caméra requise');
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission requise",
+          "Permission d'accès à la caméra requise"
+        );
         return;
       }
 
@@ -141,8 +184,8 @@ export default function CreateStoreScreen() {
         setImageFile(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Erreur prise photo:', error);
-      Alert.alert('Erreur', 'Erreur lors de la prise de photo');
+      console.error("Erreur prise photo:", error);
+      Alert.alert("Erreur", "Erreur lors de la prise de photo");
     }
   };
 
@@ -150,56 +193,56 @@ export default function CreateStoreScreen() {
   const getCurrentLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission requise', 'Permission de localisation requise');
+      if (status !== "granted") {
+        Alert.alert("Permission requise", "Permission de localisation requise");
         return;
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         latitude: location.coords.latitude.toString(),
         longitude: location.coords.longitude.toString(),
       }));
     } catch (error) {
-      console.error('Erreur géolocalisation:', error);
-      Alert.alert('Erreur', 'Impossible d\'obtenir la localisation actuelle');
+      console.error("Erreur géolocalisation:", error);
+      Alert.alert("Erreur", "Impossible d'obtenir la localisation actuelle");
     }
   };
 
   const validateForm = () => {
     const newErrors = {
-      nomMagasin: '',
-      localiteMagasin: '',
-      contactMagasin: '',
-      pays: '',
-      region: '',
+      nomMagasin: "",
+      localiteMagasin: "",
+      contactMagasin: "",
+      pays: "",
+      region: "",
       acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
     };
     let isValid = true;
 
     if (!formData.nomMagasin.trim()) {
-      newErrors.nomMagasin = 'Le nom du magasin est requis';
+      newErrors.nomMagasin = "Le nom du magasin est requis";
       isValid = false;
     }
 
     if (!formData.localiteMagasin.trim()) {
-      newErrors.localiteMagasin = 'La localisation est requise';
+      newErrors.localiteMagasin = "La localisation est requise";
       isValid = false;
     }
 
     if (!formData.contactMagasin.trim()) {
-      newErrors.contactMagasin = 'Le contact est requis';
+      newErrors.contactMagasin = "Le contact est requis";
       isValid = false;
     }
 
     if (!formData.pays) {
-      newErrors.pays = 'Le pays est requis';
+      newErrors.pays = "Le pays est requis";
       isValid = false;
     }
 
     if (!formData.region) {
-      newErrors.region = 'La région est requise';
+      newErrors.region = "La région est requise";
       isValid = false;
     }
 
@@ -221,17 +264,27 @@ export default function CreateStoreScreen() {
         niveau1Pays: { idNiveau1Pays: formData.region },
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
-        photo: imageFile || '',
+        photo: imageFile || "",
         acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
       };
 
-      await createMagasin(storeData);
-
-      Alert.alert('Succès', 'Magasin créé avec succès', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      if (isEditing) {
+        await updateMagasin(id as string, storeData);
+        Alert.alert("Succès", "Magasin mis à jour avec succès", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      } else {
+        await createMagasin(storeData);
+        Alert.alert("Succès", "Magasin créé avec succès", [
+          { text: "OK", onPress: () => router.back() },
+        ]);
+      }
     } catch (error: any) {
-      Alert.alert('Erreur', error.message || 'Erreur lors de la création');
+      Alert.alert(
+        "Erreur",
+        error.message ||
+          `Erreur lors de la ${isEditing ? "mise à jour" : "création"}`
+      );
     }
   };
 
@@ -249,10 +302,12 @@ export default function CreateStoreScreen() {
             </TouchableOpacity>
             <View>
               <Text className="text-xl font-bold text-gray-800">
-                Nouveau magasin
+                {isEditing ? "Modifier le magasin" : "Nouveau magasin"}
               </Text>
               <Text className="text-gray-500 text-xs">
-                Créez un nouveau point de vente
+                {isEditing
+                  ? "Mettez à jour votre point de vente"
+                  : "Créez un nouveau point de vente"}
               </Text>
             </View>
           </View>
@@ -260,7 +315,7 @@ export default function CreateStoreScreen() {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -271,7 +326,7 @@ export default function CreateStoreScreen() {
               onPickImage={pickImage}
               onTakePhoto={takePhoto}
               onRemoveImage={() => {
-                setImagePreview('');
+                setImagePreview("");
                 setImageFile(null);
               }}
               title="Photo du magasin"
@@ -284,7 +339,7 @@ export default function CreateStoreScreen() {
               label="Nom du magasin"
               placeholder="Ex: Supermarché Central, Boutique du coin..."
               value={formData.nomMagasin}
-              onChange={value => handleInputChange('nomMagasin', value)}
+              onChange={(value) => handleInputChange("nomMagasin", value)}
               error={errors.nomMagasin}
               iconLeft={<StoreIcon size={20} color="#94A3B8" />}
               required
@@ -294,7 +349,7 @@ export default function CreateStoreScreen() {
               label="Localisation"
               placeholder="Adresse complète du magasin"
               value={formData.localiteMagasin}
-              onChange={value => handleInputChange('localiteMagasin', value)}
+              onChange={(value) => handleInputChange("localiteMagasin", value)}
               error={errors.localiteMagasin}
               iconLeft={<MapPin size={20} color="#94A3B8" />}
               required
@@ -304,7 +359,7 @@ export default function CreateStoreScreen() {
               label="Contact"
               placeholder="Numéro de téléphone"
               value={formData.contactMagasin}
-              onChange={value => handleInputChange('contactMagasin', value)}
+              onChange={(value) => handleInputChange("contactMagasin", value)}
               error={errors.contactMagasin}
               type="phone"
               iconLeft={<Phone size={20} color="#94A3B8" />}
@@ -316,7 +371,7 @@ export default function CreateStoreScreen() {
               label="Pays"
               placeholder="Sélectionnez un pays"
               value={formData.pays}
-              onValueChange={value => handleInputChange('pays', value)}
+              onValueChange={(value) => handleInputChange("pays", value)}
               items={paysOptions}
               error={errors.pays}
               searchable
@@ -325,9 +380,13 @@ export default function CreateStoreScreen() {
 
             <FormSelect
               label="Région/Province"
-              placeholder={formData.pays ? "Sélectionnez une région" : "Sélectionnez d'abord un pays"}
+              placeholder={
+                formData.pays
+                  ? "Sélectionnez une région"
+                  : "Sélectionnez d'abord un pays"
+              }
               value={formData.region}
-              onValueChange={value => handleInputChange('region', value)}
+              onValueChange={(value) => handleInputChange("region", value)}
               items={filteredRegions}
               error={errors.region}
               searchable
@@ -359,7 +418,7 @@ export default function CreateStoreScreen() {
                     label="Latitude"
                     placeholder="Ex: 4.0511"
                     value={formData.latitude}
-                    onChange={value => handleInputChange('latitude', value)}
+                    onChange={(value) => handleInputChange("latitude", value)}
                     type="number"
                     keyboardType="numbers-and-punctuation"
                   />
@@ -369,7 +428,7 @@ export default function CreateStoreScreen() {
                     label="Longitude"
                     placeholder="Ex: 9.7679"
                     value={formData.longitude}
-                    onChange={value => handleInputChange('longitude', value)}
+                    onChange={(value) => handleInputChange("longitude", value)}
                     type="number"
                     keyboardType="numbers-and-punctuation"
                   />
@@ -383,7 +442,7 @@ export default function CreateStoreScreen() {
               disabled={loadingMagasins}
               className={`
                 w-full py-4 rounded-lg items-center justify-center
-                ${loadingMagasins ? 'bg-primary/70' : 'bg-primary'}
+                ${loadingMagasins ? "bg-primary/70" : "bg-primary"}
                 active:opacity-90
               `}
               activeOpacity={0.8}
@@ -394,7 +453,7 @@ export default function CreateStoreScreen() {
                 </Text>
               ) : (
                 <Text className="text-black font-bold text-base">
-                  Créer le magasin
+                  {isEditing ? "Mettre à jour" : "Créer le magasin"}
                 </Text>
               )}
             </TouchableOpacity>
@@ -402,7 +461,8 @@ export default function CreateStoreScreen() {
             {/* Informations supplémentaires */}
             <View className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100">
               <Text className="text-orange-800 text-xs">
-                🏪 Votre magasin sera visible sur la plateforme et pourra être associé à vos produits et stocks.
+                🏪 Votre magasin sera visible sur la plateforme et pourra être
+                associé à vos produits et stocks.
               </Text>
             </View>
           </View>

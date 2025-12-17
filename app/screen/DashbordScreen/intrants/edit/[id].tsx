@@ -6,10 +6,12 @@ import AddIntrantScreen from "../../form/AddIntrantScreen";
 export default function EditIntrantScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { intrantList } = useIntrant();
+  const { GetAllIntranByActeur } = useIntrant();
 
   // Trouver l'intrant à éditer
-  const intrantToEdit = intrantList.find((item) => item.idIntrant === id);
+  const intrantToEdit = GetAllIntranByActeur.find(
+    (item) => item.idIntrant === id
+  );
 
   useEffect(() => {
     if (!intrantToEdit && id) {

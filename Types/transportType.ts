@@ -35,9 +35,7 @@ export interface CreateVehiculeData {
     capaciteVehicule: string;
     codeVehicule: string;
     description: string;
-    nbKilometrage: number;
-    prixParDestination: DestinationPrice;
-    statutVehicule: boolean;
+    prixParDestination: { [key: string]: number };
     pays: string;
     photoVehicule: string;
     localisation: string;
