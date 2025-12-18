@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import type React from 'react'
+import type React from "react";
 
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -15,87 +15,91 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { loginType, registerUser, RegisterValues } from '../../functions/auth'
-import { getSpeculations } from '../../functions/speculations/gets'
-import { getTypesActeurs } from '../../functions/types-acteurs/gets'
-import ScrollingPage from './scrolling'
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  loginType,
+  registerUser,
+  RegisterValues,
+} from "../../../functions/auth";
+import { getSpeculations } from "../../../functions/speculations/gets";
+import { getTypesActeurs } from "../../../functions/types-acteurs/gets";
+import ScrollingPage from "./scrolling";
 
 export default function Page() {
-  const [isFirstTime, setIsFirstTime] = useState(true)
-  const [loading, setLoading] = useState(true)
+  const [isFirstTime, setIsFirstTime] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkFirstTime = async () => {
       try {
-        const alreadyLaunched = await AsyncStorage.getItem('alreadyLaunched')
+        const alreadyLaunched = await AsyncStorage.getItem("alreadyLaunched");
 
         if (alreadyLaunched === null) {
-          setIsFirstTime(true)
-          await AsyncStorage.setItem('alreadyLaunched', 'true')
+          setIsFirstTime(true);
+          await AsyncStorage.setItem("alreadyLaunched", "true");
         } else {
-          setIsFirstTime(false)
+          setIsFirstTime(false);
         }
 
-        setLoading(false)
+        setLoading(false);
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
-    }
+    };
 
-    checkFirstTime()
-  }, [])
+    checkFirstTime();
+  }, []);
 
-  if (loading) return null
+  if (loading) return null;
 
   return (
     <View className="flex-1 bg-white">
       {isFirstTime ? <ScrollingPage /> : <LoginPage />}
     </View>
-  )
+  );
 }
 
 const LoginPage = () => {
   const [valuesConnect, setValuesConnect] = useState<loginType>({
-    username: '',
-    password: '',
-  })
+    username: "",
+    password: "",
+  });
   const [valuesRegister, setValuesRegister] = useState<RegisterValues>({
-    nomActeur: '',
-    username: '',
-    adresseActeur: '',
-    telephoneActeur: '',
-    niveau3PaysActeur: '',
-    localiteActeur: '',
-    password: '',
+    nomActeur: "",
+    username: "",
+    adresseActeur: "",
+    telephoneActeur: "",
+    niveau3PaysActeur: "",
+    localiteActeur: "",
+    password: "",
     speculation: [],
     typeActeur: [],
-  })
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [isRegistering, setIsRegistering] = useState(false)
-  const router = useRouter()
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+  const router = useRouter();
   const submitHandler = async () => {
     try {
       if (isRegistering) {
         if (valuesRegister.password !== confirmPassword) {
-          alert('Les mots de passe ne correspondent pas.')
-          return
+          alert("Les mots de passe ne correspondent pas.");
+          return;
         }
-        console.log('Registering user with values:', valuesRegister)
-        const res = await registerUser(valuesRegister)
+        console.log("Registering user with values:", valuesRegister);
+        const res = await registerUser(valuesRegister);
         if (res) {
-          router.replace('/profil')
+          router.replace("/profil");
         }
       }
     } catch (error) {
-      console.log('Error during submission:', error)
+      console.log("Error during submission:", error);
     }
-  }
+  };
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={0}
     >
       <SafeAreaView className="flex-1 bg-gradient-to-b from-orange-50 to-white">
@@ -108,7 +112,7 @@ const LoginPage = () => {
           <View className="items-center mb-8">
             <View className="bg-white p-4 rounded-3xl shadow-lg shadow-orange-200">
               <Image
-                source={require('@/assets/images/logo.png')}
+                source={require("@/assets/images/logo.png")}
                 style={{ width: 140, height: 88 }}
                 resizeMode="contain"
               />
@@ -143,7 +147,7 @@ const LoginPage = () => {
               onPress={() => submitHandler()}
             >
               <Text className="text-white text-center text-lg font-bold">
-                {isRegistering ? 'Créer mon compte' : 'Se connecter'}
+                {isRegistering ? "Créer mon compte" : "Se connecter"}
               </Text>
             </TouchableOpacity>
 
@@ -153,7 +157,7 @@ const LoginPage = () => {
               activeOpacity={0.8}
             >
               <Text className="text-gray-700 text-center text-lg font-semibold">
-                {isRegistering ? "J'ai déjà un compte" : 'Créer un compte'}
+                {isRegistering ? "J'ai déjà un compte" : "Créer un compte"}
               </Text>
             </TouchableOpacity>
 
@@ -168,12 +172,12 @@ const LoginPage = () => {
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>
-  )
-}
+  );
+};
 
 interface LoginInputsProps {
-  values: loginType
-  setValues: React.Dispatch<React.SetStateAction<loginType>>
+  values: loginType;
+  setValues: React.Dispatch<React.SetStateAction<loginType>>;
 }
 
 const LoginInputs: React.FC<LoginInputsProps> = ({ values, setValues }) => {
@@ -206,14 +210,14 @@ const LoginInputs: React.FC<LoginInputsProps> = ({ values, setValues }) => {
         />
       </View>
     </View>
-  )
-}
+  );
+};
 
 interface RegisterInputsProps {
-  values: RegisterValues
-  setValues: React.Dispatch<React.SetStateAction<RegisterValues>>
-  confirmPassword: string
-  setConfirmPassword: React.Dispatch<React.SetStateAction<string>>
+  values: RegisterValues;
+  setValues: React.Dispatch<React.SetStateAction<RegisterValues>>;
+  confirmPassword: string;
+  setConfirmPassword: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const RegisterInputs: React.FC<RegisterInputsProps> = ({
@@ -222,34 +226,34 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
   confirmPassword,
   setConfirmPassword,
 }) => {
-  const [typesActeurs, setTypesActeurs] = useState([])
-  const [speculations, setSpeculations] = useState([])
-  const [typeModalVisible, setTypeModalVisible] = useState(false)
-  const [specModalVisible, setSpecModalVisible] = useState(false)
-  const [searchType, setSearchType] = useState('')
-  const [searchSpec, setSearchSpec] = useState('')
+  const [typesActeurs, setTypesActeurs] = useState([]);
+  const [speculations, setSpeculations] = useState([]);
+  const [typeModalVisible, setTypeModalVisible] = useState(false);
+  const [specModalVisible, setSpecModalVisible] = useState(false);
+  const [searchType, setSearchType] = useState("");
+  const [searchSpec, setSearchSpec] = useState("");
 
   const getSpreculation = async () => {
     try {
-      const response = await getSpeculations()
-      setSpeculations(response)
+      const response = await getSpeculations();
+      setSpeculations(response);
     } catch (error) {
-      console.log('Error fetching speculations:', error)
+      console.log("Error fetching speculations:", error);
     }
-  }
+  };
   const getTypesActeur = async () => {
     try {
-      const response = await getTypesActeurs()
-      setTypesActeurs(response)
+      const response = await getTypesActeurs();
+      setTypesActeurs(response);
     } catch (error) {
-      console.log('Error fetching types acteurs:', error)
+      console.log("Error fetching types acteurs:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    getSpreculation()
-    getTypesActeur()
-  }, [])
+    getSpreculation();
+    getTypesActeur();
+  }, []);
   return (
     <>
       <View className="gap-3">
@@ -351,7 +355,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
           >
             <Text className="text-gray-700">
               {values.typeActeur.length === 0
-                ? 'Sélectionnez un ou plusieurs types'
+                ? "Sélectionnez un ou plusieurs types"
                 : `${values.typeActeur.length} sélectionné(s)`}
             </Text>
           </TouchableOpacity>
@@ -366,7 +370,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
           >
             <Text className="text-gray-700">
               {values.speculation.length === 0
-                ? 'Sélectionnez une ou plusieurs spéculations'
+                ? "Sélectionnez une ou plusieurs spéculations"
                 : `${values.speculation.length} sélectionnée(s)`}
             </Text>
           </TouchableOpacity>
@@ -429,7 +433,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                 .map((t: any) => {
                   const checked = values.typeActeur.some(
                     (item) => item.idTypeActeur === t.idTypeActeur
-                  )
+                  );
                   return (
                     <TouchableOpacity
                       key={t.idTypeActeur}
@@ -440,7 +444,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                             typeActeur: values.typeActeur.filter(
                               (item) => item.idTypeActeur !== t.idTypeActeur
                             ),
-                          })
+                          });
                         } else {
                           setValues({
                             ...values,
@@ -448,7 +452,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                               ...values.typeActeur,
                               { idTypeActeur: t.idTypeActeur },
                             ],
-                          })
+                          });
                         }
                       }}
                       className="flex-row items-center py-3"
@@ -456,13 +460,13 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                       <View
                         className={`w-5 h-5 mr-3 rounded border ${
                           checked
-                            ? 'bg-orange-500 border-orange-500'
-                            : 'border-gray-400'
+                            ? "bg-orange-500 border-orange-500"
+                            : "border-gray-400"
                         }`}
                       />
                       <Text className="text-gray-700">{t.libelle}</Text>
                     </TouchableOpacity>
-                  )
+                  );
                 })}
             </ScrollView>
             <TouchableOpacity
@@ -503,7 +507,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                 .map((s: any) => {
                   const checked = values.speculation.some(
                     (item) => item.idSpeculation === s.idSpeculation
-                  )
+                  );
                   return (
                     <TouchableOpacity
                       key={s.idSpeculation}
@@ -514,7 +518,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                             speculation: values.speculation.filter(
                               (item) => item.idSpeculation !== s.idSpeculation
                             ),
-                          })
+                          });
                         } else {
                           setValues({
                             ...values,
@@ -522,7 +526,7 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                               ...values.speculation,
                               { idSpeculation: s.idSpeculation },
                             ],
-                          })
+                          });
                         }
                       }}
                       className="flex-row items-center py-3"
@@ -530,13 +534,13 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
                       <View
                         className={`w-5 h-5 mr-3 rounded border ${
                           checked
-                            ? 'bg-orange-500 border-orange-500'
-                            : 'border-gray-400'
+                            ? "bg-orange-500 border-orange-500"
+                            : "border-gray-400"
                         }`}
                       />
                       <Text className="text-gray-700">{s.nomSpeculation}</Text>
                     </TouchableOpacity>
-                  )
+                  );
                 })}
             </ScrollView>
             <TouchableOpacity
@@ -549,5 +553,5 @@ const RegisterInputs: React.FC<RegisterInputsProps> = ({
         </View>
       </Modal>
     </>
-  )
-}
+  );
+};

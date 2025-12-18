@@ -3,14 +3,16 @@ import { ScrollView, View } from "react-native";
 
 import Header from "@/components/common/Header";
 import SearchBar from "@/components/common/SearchBar";
-import ActorTypesList from "@/components/home/ActorTypesList";
 import AllProductsGrid from "@/components/home/AllProductsGrid";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FeaturedStoresList from "@/components/home/FeaturedStoresList";
 import HotProductsList from "@/components/home/HotProductsList";
+import IntrantsPreviewList from "@/components/home/IntrantsPreviewList";
 import PromotionCarousel from "@/components/home/PromotionCarousel";
 import { categories, promotions } from "@/constants/data";
 import { useHome } from "@/context/HomeContext";
+import { useIntrant } from "@/context/Intrant";
+import { Intrant } from "@/Types/consumer";
 import { Magasin } from "@/Types/Magasin";
 import { Stock } from "@/Types/Stock";
 import { router } from "expo-router";
@@ -25,6 +27,9 @@ export default function HomeScreen() {
     typeActeur,
     getAllTypeActeurs,
   } = useHome();
+
+  const { GetAllintrantList, loading, fetchIntrant } = useIntrant();
+
   const [currentPage, setCurrentPage] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([1, 2]);
@@ -34,6 +39,7 @@ export default function HomeScreen() {
     getAllMagasins();
     getAllStock();
     getAllTypeActeurs();
+    fetchIntrant();
   }, []);
 
   const handleProductPress = (stock: Stock) => {
@@ -68,6 +74,17 @@ export default function HomeScreen() {
   //         setCart([...cart, { ...product, quantity: 1 }]);
   //     }
   // };
+
+  // const handleIntrantPress = (GetAllintrantList: Intrant) => {
+  //   router.push(`/intrant/${GetAllintrantList.idIntrant}`);
+  // };
+
+  const handleIntrantPress = (intrant: Intrant) => {
+    router.push({
+      pathname: "/screen/intrant/[id]",
+      params: { id: intrant.idIntrant },
+    });
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -106,9 +123,14 @@ export default function HomeScreen() {
           />
 
           {/* Liste des types d'acteurs */}
-          <ActorTypesList
+          {/* <ActorTypesList
             actorTypes={typeActeur}
             onActorTypePress={(type) => console.log("Actor type:", type)}
+          /> */}
+
+          <IntrantsPreviewList
+            intrants={GetAllintrantList}
+            onPressItem={handleIntrantPress}
           />
           {/* Magasins populaires */}
           <FeaturedStoresList
