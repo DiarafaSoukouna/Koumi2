@@ -280,7 +280,7 @@ export default function IntrantDetailScreen() {
               <Text className="text-gray-700 font-medium mb-3">
                 Contacter le vendeur
               </Text>
-              <View className="flex-row space-x-3">
+              <View className="flex-row space-x-3 gap-2">
                 {intrant.acteur.telephoneActeur && (
                   <TouchableOpacity
                     onPress={handleCall}

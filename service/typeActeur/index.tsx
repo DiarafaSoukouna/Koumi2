@@ -1,1 +1,1 @@
-export { default as getAllTypeActeur } from "./getAll"
+export { default as getAllTypeActeur } from "./getAll";

@@ -1,8 +1,8 @@
 import axiosInstance from "@/constants/axiosInstance";
 
-const getAllProducts = async (page: number = 0, size: number = 10) => {
+const getAllProducts = async () => {
   try {
-    const response = await axiosInstance.get(`/Stock/listeStock?page=${page}&size=${size}`);
+    const response = await axiosInstance.get('/Stock/getAllStocks');
     return response.data;
   } catch (error) {
     throw error;

@@ -1,18 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 import Header from "@/components/common/Header";
 import SearchBar from "@/components/common/SearchBar";
 import AllProductsGrid from "@/components/home/AllProductsGrid";
-import CategoryGrid from "@/components/home/CategoryGrid";
 import FeaturedStoresList from "@/components/home/FeaturedStoresList";
+import FiliereGrid from "@/components/home/FiliereGrid";
 import HotProductsList from "@/components/home/HotProductsList";
 import IntrantsPreviewList from "@/components/home/IntrantsPreviewList";
 import PromotionCarousel from "@/components/home/PromotionCarousel";
-import { categories, promotions } from "@/constants/data";
+import { promotions } from "@/constants/data";
 import { useHome } from "@/context/HomeContext";
 import { useIntrant } from "@/context/Intrant";
 import { Intrant } from "@/Types/consumer";
+import { Filiere } from "@/Types/Filiere";
 import { Magasin } from "@/Types/Magasin";
 import { Stock } from "@/Types/Stock";
 import { router } from "expo-router";
@@ -26,6 +27,9 @@ export default function HomeScreen() {
     getAllStock,
     typeActeur,
     getAllTypeActeurs,
+    getAllFillieres,
+    loadingFillieres,
+    fillieres,
   } = useHome();
 
   const { GetAllintrantList, loading, fetchIntrant } = useIntrant();
@@ -34,13 +38,65 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([1, 2]);
   const [cart, setCart] = useState<any[]>([]);
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   useEffect(() => {
     getAllMagasins();
     getAllStock();
     getAllTypeActeurs();
     fetchIntrant();
+    getAllFillieres();
   }, []);
+
+  // Fonction pour gérer la recherche
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      setIsSearchActive(true);
+    }
+  };
+
+  // Fonction pour annuler la recherche
+  const handleCancelSearch = () => {
+    setSearchQuery("");
+    setIsSearchActive(false);
+  };
+
+  // Fonction pour effacer le texte de recherche
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setIsSearchActive(false);
+  };
+
+  // Filtrer les données en fonction de la recherche
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return {
+        stocks: [],
+        magasins: [],
+        intrants: [],
+        filieres: [],
+      };
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+
+    return {
+      stocks: stocks.filter((stock) =>
+        stock.descriptionStock?.toLowerCase().includes(query)
+      ),
+      magasins: magasins.filter((magasin) =>
+        magasin.nomMagasin?.toLowerCase().includes(query)
+      ),
+      intrants: GetAllintrantList.filter(
+        (intrant) =>
+          intrant.nomIntrant?.toLowerCase().includes(query) ||
+          intrant.descriptionIntrant?.toLowerCase().includes(query)
+      ),
+      filieres: fillieres.filter((filiere) =>
+        filiere.libelleFiliere?.toLowerCase().includes(query)
+      ),
+    };
+  }, [searchQuery, stocks, magasins, GetAllintrantList, fillieres]);
 
   const handleProductPress = (stock: Stock) => {
     router.push({
@@ -64,27 +120,173 @@ export default function HomeScreen() {
     );
   };
 
-  // const addToCart = (product: any) => {
-  //     const existing = cart.find(item => item.id === product.id);
-  //     if (existing) {
-  //         setCart(cart.map(item =>
-  //             item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-  //         ));
-  //     } else {
-  //         setCart([...cart, { ...product, quantity: 1 }]);
-  //     }
-  // };
-
-  // const handleIntrantPress = (GetAllintrantList: Intrant) => {
-  //   router.push(`/intrant/${GetAllintrantList.idIntrant}`);
-  // };
-
   const handleIntrantPress = (intrant: Intrant) => {
     router.push({
       pathname: "/screen/intrant/[id]",
       params: { id: intrant.idIntrant },
     });
   };
+
+  const handleFilierePress = (filiere: Filiere) => {
+    router.push({
+      pathname: "/screen/filiere/[libelle]",
+      params: {
+        libelle: encodeURIComponent(filiere.libelleFiliere),
+        idFiliere: filiere.idFiliere,
+      },
+    });
+  };
+
+  // Rendu des résultats de recherche
+  const renderSearchResults = () => {
+    const hasResults =
+      filteredData.stocks.length > 0 ||
+      filteredData.magasins.length > 0 ||
+      filteredData.intrants.length > 0 ||
+      filteredData.filieres.length > 0;
+
+    return (
+      <View className="space-y-6">
+        {/* <View className="flex-row items-center justify-between">
+          <Text className="text-lg font-bold text-gray-800">
+            Résultats pour "{searchQuery}"
+          </Text>
+          <Text className="text-gray-500">
+            {filteredData.stocks.length +
+              filteredData.magasins.length +
+              filteredData.intrants.length +
+              filteredData.filieres.length}{" "}
+            résultat(s)
+          </Text>
+        </View> */}
+
+        {!hasResults ? (
+          <View className="py-10 items-center">
+            <Text className="text-gray-500 text-lg mb-2">
+              Aucun résultat trouvé
+            </Text>
+            <Text className="text-gray-400 text-center">
+              Essayez d'autres mots-clés ou vérifiez l'orthographe
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* Produits */}
+            {filteredData.stocks.length > 0 && (
+              <View>
+                <Text className="text-md font-semibold text-gray-700 mb-3">
+                  Produits ({filteredData.stocks.length})
+                </Text>
+                <AllProductsGrid
+                  products={filteredData.stocks}
+                  favorites={favorites}
+                  onProductPress={handleProductPress}
+                  onFavoritePress={toggleFavorite}
+                />
+              </View>
+            )}
+
+            {/* Magasins */}
+            {filteredData.magasins.length > 0 && (
+              <View>
+                <Text className="text-md font-semibold text-gray-700 mb-3">
+                  Magasins ({filteredData.magasins.length})
+                </Text>
+                <FeaturedStoresList
+                  stores={filteredData.magasins}
+                  onStorePress={handleStorePress}
+                />
+              </View>
+            )}
+
+            {/* Intrants */}
+            {filteredData.intrants.length > 0 && (
+              <View>
+                <Text className="text-md font-semibold text-gray-700 mb-3">
+                  Intrants ({filteredData.intrants.length})
+                </Text>
+                <IntrantsPreviewList
+                  intrants={filteredData.intrants}
+                  onPressItem={handleIntrantPress}
+                />
+              </View>
+            )}
+
+            {/* Filières */}
+            {filteredData.filieres.length > 0 && (
+              <View>
+                <Text className="text-md font-semibold text-gray-700 mb-3">
+                  Filières ({filteredData.filieres.length})
+                </Text>
+                <FiliereGrid
+                  filieres={filteredData.filieres}
+                  onFilierePress={handleFilierePress}
+                />
+              </View>
+            )}
+          </>
+        )}
+      </View>
+    );
+  };
+
+  // Rendu normal (sans recherche)
+  const renderNormalView = () => (
+    <>
+      {/* Carousel des promotions */}
+      <PromotionCarousel
+        promotions={promotions}
+        onPromotionPress={(promo) => console.log("Promotion:", promo)}
+      />
+
+      {/* Grille des filières */}
+      {loadingFillieres ? (
+        <View className="py-4">
+          <Text className="text-center text-gray-500">
+            Chargement des filières...
+          </Text>
+        </View>
+      ) : fillieres.length > 0 ? (
+        <FiliereGrid filieres={fillieres} onFilierePress={handleFilierePress} />
+      ) : (
+        <View className="py-4">
+          <Text className="text-center text-gray-500">
+            Aucune filière disponible
+          </Text>
+        </View>
+      )}
+
+      <IntrantsPreviewList
+        intrants={GetAllintrantList}
+        onPressItem={handleIntrantPress}
+      />
+
+      {/* Magasins populaires */}
+      <FeaturedStoresList
+        stores={magasins}
+        onStorePress={handleStorePress}
+        onSeeAllPress={() => router.push("/(tabs)/Magasin")}
+      />
+
+      {/* Produits populaires */}
+      <HotProductsList
+        products={stocks}
+        favorites={favorites}
+        onProductPress={handleProductPress}
+        onFavoritePress={toggleFavorite}
+        onSeeAllPress={() => console.log("See all hot products")}
+      />
+
+      {/* Tous les produits */}
+      <AllProductsGrid
+        products={stocks}
+        favorites={favorites}
+        onProductPress={handleProductPress}
+        onFavoritePress={toggleFavorite}
+        onSeeAllPress={() => console.log("See all products")}
+      />
+    </>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -93,15 +295,18 @@ export default function HomeScreen() {
         location="Yaoundé, Cameroun"
         cartCount={cart.length}
         notificationCount={3}
-        // onCartPress={() => console.log('Cart pressed')}
-        onNotificationPress={() => console.log("Notification pressed")}
+        onNotificationPress={() => console.log("Notification")}
+        onConnecterPress={() => router.push("/screen/(auth)/login")}
       />
 
       <SearchBar
         placeholder="Rechercher produits, magasins..."
         value={searchQuery}
         onChangeText={setSearchQuery}
-        onSearch={() => console.log("Search:", searchQuery)}
+        onSearch={handleSearch}
+        onCancel={handleCancelSearch}
+        onClear={handleClearSearch}
+        showCancel={isSearchActive}
       />
 
       <ScrollView
@@ -110,54 +315,7 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: 80 }}
       >
         <View className="px-4 py-4 space-y-6">
-          {/* Carousel des promotions */}
-          <PromotionCarousel
-            promotions={promotions}
-            onPromotionPress={(promo) => console.log("Promotion:", promo)}
-          />
-
-          {/* Grille des catégories */}
-          <CategoryGrid
-            categories={categories}
-            onCategoryPress={(category) => console.log("Category:", category)}
-          />
-
-          {/* Liste des types d'acteurs */}
-          {/* <ActorTypesList
-            actorTypes={typeActeur}
-            onActorTypePress={(type) => console.log("Actor type:", type)}
-          /> */}
-
-          <IntrantsPreviewList
-            intrants={GetAllintrantList}
-            onPressItem={handleIntrantPress}
-          />
-          {/* Magasins populaires */}
-          <FeaturedStoresList
-            stores={magasins}
-            onStorePress={handleStorePress}
-            onSeeAllPress={() => router.push("/(tabs)/Magasin")}
-          />
-
-          {/* Produits populaires */}
-          <HotProductsList
-            products={stocks}
-            favorites={favorites}
-            onProductPress={handleProductPress}
-            onFavoritePress={toggleFavorite}
-            // onAddToCart={addToCart}
-            onSeeAllPress={() => console.log("See all hot products")}
-          />
-
-          {/* Tous les produits */}
-          <AllProductsGrid
-            products={stocks}
-            favorites={favorites}
-            onProductPress={handleProductPress}
-            onFavoritePress={toggleFavorite}
-            // onAddToCart={addToCart}
-            onSeeAllPress={() => console.log("See all products")}
-          />
+          {searchQuery.trim() ? renderSearchResults() : renderNormalView()}
         </View>
       </ScrollView>
     </SafeAreaView>

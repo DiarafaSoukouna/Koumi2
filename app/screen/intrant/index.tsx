@@ -194,7 +194,7 @@ export default function IntrantListScreen() {
             </Text>
           </View>
 
-          <Text className="text-primary text-lg font-bold">
+          <Text className="text-yellow-500 text-lg font-bold">
             {formatPrice(item.prixIntrant, item.monnaie)}
           </Text>
         </View>
@@ -238,7 +238,7 @@ export default function IntrantListScreen() {
           </View>
 
           <View className="flex-row items-center justify-between">
-            <Text className="text-primary text-xl font-bold">
+            <Text className="text-yellow-500 text-xl font-bold">
               {formatPrice(item.prixIntrant, item.monnaie)}
             </Text>
 
@@ -276,9 +276,9 @@ export default function IntrantListScreen() {
             {selectedCategory && (
               <TouchableOpacity
                 onPress={() => setSelectedCategory(null)}
-                className="flex-row items-center bg-primary/20 px-3 py-1 rounded-full"
+                className="flex-row items-center bg-yellow-500 px-3 py-1 rounded-full"
               >
-                <Text className="text-primary text-sm">
+                <Text className="text-yellow-500 text-sm">
                   {categories.find(
                     (c) => c.idCategorieProduit === selectedCategory
                   )?.libelleCategorie || "Catégorie"}
@@ -316,7 +316,7 @@ export default function IntrantListScreen() {
                 setSearchQuery("");
               }}
             >
-              <Text className="text-primary text-sm">Réinitialiser</Text>
+              <Text className="text-yellow-500 text-sm">Réinitialiser</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -366,10 +366,10 @@ export default function IntrantListScreen() {
           </View>
           <TouchableOpacity
             onPress={() => setShowFilters(true)}
-            className="flex-row items-center bg-primary/10 px-3 py-2 rounded-lg"
+            className="flex-row items-center bg-yellow-500 px-3 py-2 rounded-lg"
           >
             <Filter size={16} color="#079C48" />
-            <Text className="text-primary font-medium ml-2">Filtrer</Text>
+            <Text className="text-black font-medium ml-2">Filtrer</Text>
             {(selectedCategory || selectedForme) && (
               <View className="w-2 h-2 bg-red-500 rounded-full ml-2" />
             )}
@@ -461,7 +461,7 @@ export default function IntrantListScreen() {
                     key={option.key}
                     onPress={() => setSortBy(option.key)}
                     className={`px-4 py-2 rounded-full ${
-                      sortBy === option.key ? "bg-primary" : "bg-gray-100"
+                      sortBy === option.key ? "bg-yellow-500" : "bg-gray-100"
                     }`}
                   >
                     <Text
@@ -484,7 +484,7 @@ export default function IntrantListScreen() {
                 <TouchableOpacity
                   onPress={() => setSelectedCategory(null)}
                   className={`px-3 py-2 rounded-full ${
-                    !selectedCategory ? "bg-primary" : "bg-gray-100"
+                    !selectedCategory ? "bg-yellow-500" : "bg-gray-100"
                   }`}
                 >
                   <Text
@@ -506,7 +506,7 @@ export default function IntrantListScreen() {
                     }
                     className={`px-3 py-2 rounded-full ${
                       selectedCategory === category.idCategorieProduit
-                        ? "bg-primary"
+                        ? "bg-yellow-500"
                         : "bg-gray-100"
                     }`}
                   >
@@ -568,7 +568,7 @@ export default function IntrantListScreen() {
               </View>
             </View>
 
-            <View className="flex-row space-x-3">
+            <View className="flex-row space-x-3 gap-2">
               <TouchableOpacity
                 onPress={() => {
                   setSelectedCategory(null);
@@ -582,7 +582,7 @@ export default function IntrantListScreen() {
 
               <TouchableOpacity
                 onPress={() => setShowFilters(false)}
-                className="flex-1 bg-primary py-4 rounded-xl items-center"
+                className="flex-1 bg-yellow-500 py-4 rounded-xl items-center"
               >
                 <Text className="text-white font-medium">Appliquer</Text>
               </TouchableOpacity>
