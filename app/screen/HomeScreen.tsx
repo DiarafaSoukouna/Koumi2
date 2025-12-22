@@ -291,9 +291,9 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <Header
-        title="KOUMI"
-        location="Yaoundé, Cameroun"
-        cartCount={cart.length}
+        // title="KOUMI"
+        // location="Yaoundé, Cameroun"
+        // cartCount={cart.length}
         notificationCount={3}
         onNotificationPress={() => console.log("Notification")}
         onConnecterPress={() => router.push("/screen/(auth)/login")}

@@ -1,6 +1,6 @@
-import { Bell, MapPin, User } from "lucide-react-native";
+import { Bell, User } from "lucide-react-native";
 import React from "react";
-import { Image, Text, View } from "react-native"; // Ajoutez Image ici
+import { Image, View } from "react-native"; // Ajoutez Image ici
 import IconButton from "./IconButton";
 
 interface HeaderProps {
@@ -30,13 +30,6 @@ export default function Header({
               style={{ width: 48, height: 48, tintColor: "black" }}
               resizeMode="contain"
             />
-          </View>
-          <View>
-            <Text className="text-lg font-bold text-gray-800">{title}</Text>
-            <View className="flex-row items-center">
-              <MapPin size={12} color="#64748B" />
-              <Text className="text-gray-500 text-xs ml-1">{location}</Text>
-            </View>
           </View>
         </View>
 
