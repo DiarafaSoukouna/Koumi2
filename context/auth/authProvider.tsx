@@ -1,6 +1,7 @@
 // app/providers/authContext.tsx
 import { createUser } from "@/service/auth/createUser";
 import { loginUser } from "@/service/auth/loginUser";
+import { loginUserCodePin } from "@/service/auth/loginUserCodePin";
 import { getAllNiveau3Pays } from "@/service/niveau3Pays/getAll";
 import { getAllSpeculations } from "@/service/speculation/getAll";
 import { getAllTypeActeur } from "@/service/typeActeur";
@@ -41,6 +42,31 @@ export default ({ children }: { children: React.ReactNode }) => {
         JSON.stringify(response.user || response)
       );
       console.log("camara macky", response.user || response);
+
+      setUser(response.user || response);
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Erreur de connexion");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // login avec code pin
+
+  const loginCodePin = async (data: loginType) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await loginUserCodePin(data);
+
+      await AsyncStorage.setItem("userToken", response.token || "");
+      await AsyncStorage.setItem(
+        "userData",
+        JSON.stringify(response.user || response)
+      );
+      console.log("connexion reussi avec code pin", response.user || response);
 
       setUser(response.user || response);
       router.replace("/(tabs)");
@@ -143,6 +169,7 @@ export default ({ children }: { children: React.ReactNode }) => {
   const value: AuthContextType = {
     user,
     login,
+    loginCodePin,
     register,
     logout,
     isLoading,

@@ -287,16 +287,21 @@ export default function HomeScreen() {
       />
     </>
   );
+  const handleLocationPress = () => {
+    console.log("Changer de localisation");
+    // Vous pouvez implémenter ici la logique pour changer de localisation
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <Header
-        // title="KOUMI"
+        title="KOUMI"
         // location="Yaoundé, Cameroun"
         // cartCount={cart.length}
         notificationCount={3}
         onNotificationPress={() => console.log("Notification")}
         onConnecterPress={() => router.push("/screen/(auth)/login")}
+        onLocationPress={handleLocationPress}
       />
 
       <SearchBar
