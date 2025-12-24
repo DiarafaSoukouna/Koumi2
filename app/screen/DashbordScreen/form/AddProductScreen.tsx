@@ -2,6 +2,7 @@
 import { FormInput } from "@/components/common/CustomInput";
 import { FormSelect } from "@/components/common/CustomSelect";
 import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useAuth } from "@/context/auth";
 import { useMerchant } from "@/context/Merchant";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -34,6 +35,7 @@ export default function AddProductScreen() {
   const params = useLocalSearchParams();
   const productId = params.id as string | undefined;
   const isEditMode = !!productId;
+  const { user, isInitializing } = useAuth();
 
   const {
     createStock,
@@ -97,6 +99,23 @@ export default function AddProductScreen() {
 
     loadInitialData();
   }, []);
+
+  // Vérifier l'authentification
+  useEffect(() => {
+    if (!isInitializing && !user) {
+      Alert.alert(
+        "Non connecté",
+        "Vous devez être connecté pour accéder à cette page.",
+        [
+          {
+            text: "Se connecter",
+            onPress: () => router.replace("/screen/(auth)/login"),
+          },
+          { text: "Annuler", onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [isInitializing, user]);
 
   // Pré-remplir en mode édition
   useEffect(() => {
@@ -298,7 +317,7 @@ export default function AddProductScreen() {
         unite: { idUnite: formData.unite },
         magasin: { idMagasin: formData.magasin },
         monnaie: { idMonnaie: formData.monnaie },
-        acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+        acteur: { idActeur: user?.idActeur || "" },
         statutSotck: true, // Important pour la modification
       };
 
@@ -357,12 +376,16 @@ export default function AddProductScreen() {
     }
   };
 
-  if (loadingData) {
+  if (loadingData || isInitializing) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#079C48" />
-          <Text className="text-gray-500 mt-4">Chargement des données...</Text>
+          <Text className="text-gray-500 mt-4">
+            {isInitializing
+              ? "Vérification de l'authentification..."
+              : "Chargement des données..."}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -573,7 +596,7 @@ export default function AddProductScreen() {
               disabled={loadingStocks}
               className={`
                 w-full py-4 rounded-lg items-center justify-center
-                ${loadingStocks ? "bg-primary/70" : "bg-primary"}
+                ${loadingStocks ? "bg-yellow-500" : "bg-yellow-500"}
                 active:opacity-90 mb-4
               `}
               activeOpacity={0.8}

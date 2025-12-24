@@ -209,7 +209,7 @@ export default function StoresListScreen() {
                   onPress={() =>
                     router.push("/screen/DashbordScreen/form/CreateStoreScreen")
                   }
-                  className="bg-primary px-6 py-3 rounded-lg"
+                  className="bg-yellow-500 px-6 py-3 rounded-lg"
                 >
                   <Text className="text-black font-medium">
                     Créer mon premier magasin

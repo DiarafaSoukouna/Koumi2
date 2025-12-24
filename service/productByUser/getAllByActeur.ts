@@ -1,11 +1,14 @@
 import axiosInstance from '@/constants/axiosInstance';
 import { Stock } from '@/Types/Stock';
 
-    const ACTEUR_ID = 'd48lrq5lpgw53adl0yq1';
 
 export const getAllStocksByActeur = async (acteurId: string): Promise<Stock[]> => {
   try {
-    const response = await axiosInstance.get(`/Stock/getByActeurs/${ACTEUR_ID}`)
+    if (!acteurId) {
+      throw new Error("ID de l'acteur manquant");
+    }
+    
+    const response = await axiosInstance.get(`/Stock/getByActeurs/${acteurId}`)
     return response.data || []
   } catch (error: any) {
     if (error.response?.data?.message?.toLowerCase().includes('aucun stock')) {

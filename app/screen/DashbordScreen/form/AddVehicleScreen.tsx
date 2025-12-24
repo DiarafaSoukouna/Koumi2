@@ -1,6 +1,7 @@
 import { FormInput } from "@/components/common/CustomInput";
 import { FormSelect } from "@/components/common/CustomSelect";
 import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useAuth } from "@/context/auth";
 import { useTransporteur } from "@/context/Transporteur";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -57,6 +58,8 @@ export default function AddVehicleScreen() {
   const { id } = useLocalSearchParams();
   const isEditing = !!id;
 
+  const { user, isInitializing } = useAuth();
+
   // États du formulaire
   const [formData, setFormData] = useState({
     nomVehicule: "",
@@ -105,6 +108,23 @@ export default function AddVehicleScreen() {
 
     loadInitialData();
   }, []);
+
+  // Vérifier l'authentification et rediriger si nécessaire
+  useEffect(() => {
+    if (!isInitializing && !user) {
+      Alert.alert(
+        "Non connecté",
+        "Vous devez être connecté pour accéder à cette page.",
+        [
+          {
+            text: "Se connecter",
+            onPress: () => router.replace("/screen/(auth)/login"),
+          },
+          { text: "Annuler", onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [isInitializing, user]);
 
   // Pré-remplir le formulaire en mode édition
   useEffect(() => {
@@ -366,6 +386,7 @@ export default function AddVehicleScreen() {
     if (!validateForm()) {
       return;
     }
+    console.log("id user", user?.idActeur);
 
     try {
       const vehicleData = {
@@ -384,11 +405,12 @@ export default function AddVehicleScreen() {
         etatVehicule: formData.etatVehicule || "Bon état",
         personneModif: null,
         nbreView: 0,
-        acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+        acteur: { idActeur: user?.idActeur || "" },
         typeVoiture: { idTypeVoiture: formData.typeVoiture },
         monnaie: { idMonnaie: formData.monnaie },
       };
-
+      console.log("id user", user?.idActeur);
+      console.log("data", vehicleData);
       if (isEditing) {
         await updateVehicule(id as string, vehicleData);
         Alert.alert("Succès", "Véhicule mis à jour avec succès", [
@@ -400,9 +422,6 @@ export default function AddVehicleScreen() {
           {
             text: "OK",
             onPress: () => {
-              // Reset only if staying, but we go back usually.
-              // If we want to stay and create another, we reset.
-              // For now let's assume strict back behavior or reset logic as before
               setFormData({
                 nomVehicule: "",
                 codeVehicule: "",
@@ -438,12 +457,16 @@ export default function AddVehicleScreen() {
     }
   };
 
-  if (loadingData) {
+  if (loadingData || isInitializing) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#079C48" />
-          <Text className="text-gray-500 mt-4">Chargement des données...</Text>
+          <Text className="text-gray-500 mt-4">
+            {isInitializing
+              ? "Vérification de l'authentification..."
+              : "Chargement des données..."}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -605,7 +628,7 @@ export default function AddVehicleScreen() {
                 </Text>
                 <TouchableOpacity
                   onPress={addDestinationPrice}
-                  className="flex-row items-center bg-primary/10 px-3 py-1.5 rounded-lg"
+                  className="flex-row items-center bg-yellow-500 px-3 py-1.5 rounded-lg"
                   activeOpacity={0.7}
                 >
                   <Plus size={16} color="#079C48" className="mr-1" />
@@ -726,8 +749,8 @@ export default function AddVehicleScreen() {
                                 w-full py-4 rounded-lg items-center justify-center
                                 ${
                                   loadingVehicules
-                                    ? "bg-primary/70"
-                                    : "bg-primary"
+                                    ? "bg-yellow-500"
+                                    : "bg-yellow-500"
                                 }
                                 active:opacity-90 mb-4
                             `}

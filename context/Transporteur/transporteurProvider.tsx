@@ -15,6 +15,7 @@ import { getAllTypeVoiture } from "@/service/TypeVoiture/getAll";
 import { getAllMonnaie } from "@/service/monnaie/getAllMonnaie";
 import { getAllPays } from "@/service/pays/getAll";
 import { ReactNode, useCallback, useEffect, useState } from "react";
+import { useAuth } from "../auth";
 import { TransporteurContext } from "./transporteurContext";
 // import { useAuth } from "./authContext"
 
@@ -25,10 +26,18 @@ interface Notification {
 }
 
 export default ({ children }: { children: ReactNode }) => {
-  // const { user } = useAuth();
+  const { user } = useAuth();
 
-  // ID dynamique basé sur l'utilisateur
-  const ACTEUR_ID = "d48lrq5lpgw53adl0yq1";
+  // Fonction pour obtenir l'ID de l'acteur
+  const getActeurId = useCallback(() => {
+    if (!user) {
+      throw new Error("Utilisateur non connecté");
+    }
+    if (!user.idActeur) {
+      throw new Error("ID utilisateur non disponible");
+    }
+    return user.idActeur;
+  }, [user]);
 
   // États pour les données
   const [vehicules, setVehicules] = useState<Vehicule[]>([]);
@@ -84,7 +93,8 @@ export default ({ children }: { children: ReactNode }) => {
     try {
       setLoadingVehicules(true);
       setErrorVehicules(null);
-      const data = await getAllVehiculeByActeur();
+      const acteurId = getActeurId();
+      const data = await getAllVehiculeByActeur(acteurId);
       setVehicules(data);
     } catch (error: any) {
       setErrorVehicules(error.message);
@@ -92,7 +102,7 @@ export default ({ children }: { children: ReactNode }) => {
     } finally {
       setLoadingVehicules(false);
     }
-  }, [showNotification]);
+  }, [showNotification, getActeurId]);
 
   // Récupérer tous les types de voiture
   const fetchTypeVoitures = useCallback(async () => {
@@ -171,9 +181,10 @@ export default ({ children }: { children: ReactNode }) => {
       try {
         setLoadingVehicules(true);
         setErrorVehicules(null);
+        const acteurId = getActeurId();
         const vehiculeData = {
           ...data,
-          acteur: { idActeur: ACTEUR_ID },
+          acteur: { idActeur: acteurId },
         };
         await createVehiculeAPI(vehiculeData);
         await fetchVehicules();
@@ -186,7 +197,8 @@ export default ({ children }: { children: ReactNode }) => {
         setLoadingVehicules(false);
       }
     },
-    [ACTEUR_ID, fetchVehicules, showNotification]
+
+    [fetchVehicules, showNotification, getActeurId]
   );
 
   // Mettre à jour un véhicule
@@ -209,7 +221,8 @@ export default ({ children }: { children: ReactNode }) => {
         setLoadingVehicules(false);
       }
     },
-    [fetchVehicules, showNotification]
+
+    [fetchVehicules, showNotification, getActeurId]
   );
 
   // Supprimer un véhicule
@@ -232,13 +245,17 @@ export default ({ children }: { children: ReactNode }) => {
         setLoadingVehicules(false);
       }
     },
-    [fetchVehicules, showNotification]
+
+    [fetchVehicules, showNotification, getActeurId]
   );
 
   // Charger les données initiales
+
   useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
+    if (user) {
+      refreshAll();
+    }
+  }, [user]);
 
   const value: TransporteurContextType = {
     // États des données

@@ -1,14 +1,19 @@
 import axiosInstance from "@/constants/axiosInstance";
 import { Vehicule } from "@/Types/transportType";
 
-const ACTEUR_ID = 'd48lrq5lpgw53adl0yq1'
-
-export const getAllVehiculeByActeur = async (): Promise<Vehicule[]> => {
-    try {
-        const response = await axiosInstance.get(`vehicule/getByActeur/${ACTEUR_ID}`)
-        return response.data
-    } catch (error) {
-        console.log('Erreur lors de la récupération des transporteurs par acteur:', error)
-        throw error
+export const getAllVehiculeByActeur = async (acteurId : string): Promise<Vehicule[]> => {
+  try {
+    if (!acteurId) {
+      throw new Error("ID de l'acteur manquant");
     }
+    
+    const response = await axiosInstance.get(`/vehicule/getByActeur/${acteurId}`)
+    return response.data || []
+  } catch (error: any) {
+    if (error.response?.data?.message?.toLowerCase().includes('aucun vehicule')) {
+      return []
+    }
+    console.error('Erreur lors de la récupération des vehicules:', error.response?.data?.message || error.message)
+    return []
+  }
 }

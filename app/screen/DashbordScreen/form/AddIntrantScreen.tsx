@@ -1,5 +1,6 @@
 import { FormInput } from "@/components/common/CustomInput";
 import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useAuth } from "@/context/auth";
 import { useIntrant } from "@/context/Intrant";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
@@ -17,6 +18,7 @@ import {
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Modal,
@@ -49,6 +51,24 @@ export default function AddIntrantScreen({
     fetchCategories,
     fetchFormes,
   } = useIntrant();
+  const { user, isInitializing } = useAuth();
+
+  // Vérifier l'authentification
+  useEffect(() => {
+    if (!isInitializing && !user) {
+      Alert.alert(
+        "Non connecté",
+        "Vous devez être connecté pour accéder à cette page.",
+        [
+          {
+            text: "Se connecter",
+            onPress: () => router.replace("/screen/(auth)/login"),
+          },
+          { text: "Annuler", onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [isInitializing, user]);
 
   const generateCodeIntrant = () => {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -73,7 +93,7 @@ export default function AddIntrantScreen({
     unite: "",
     categorieProduit: { idCategorieProduit: "" },
     forme: { idForme: "" },
-    acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+    acteur: { idActeur: user?.idActeur },
     monnaie: { idMonnaie: "" },
   });
 
@@ -121,7 +141,7 @@ export default function AddIntrantScreen({
           idCategorieProduit: intrantToEdit.categorieProduit.idCategorieProduit,
         },
         forme: { idForme: intrantToEdit.forme.idForme },
-        acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+        acteur: { idActeur: user?.idActeur || "" },
         monnaie: intrantToEdit.monnaie
           ? { idMonnaie: intrantToEdit.monnaie.idMonnaie }
           : { idMonnaie: "" },
@@ -293,7 +313,7 @@ export default function AddIntrantScreen({
         unite: formData.unite,
         categorieProduit: formData.categorieProduit,
         forme: formData.forme,
-        acteur: formData.acteur,
+        acteur: { idActeur: user?.idActeur || "" },
         monnaie: formData.monnaie,
       };
 
@@ -615,20 +635,25 @@ export default function AddIntrantScreen({
             {/* Bouton de soumission */}
             <TouchableOpacity
               onPress={handleSubmit}
-              disabled={loading}
+              disabled={loading || isInitializing}
               className={`
                 w-full py-4 rounded-lg items-center justify-center
-                ${loading ? "bg-primary/70" : "bg-primary"}
+                ${loading || isInitializing ? "bg-yellow-500" : "bg-yellow-500"}
                 active:opacity-90
               `}
               activeOpacity={0.8}
             >
-              {loading ? (
-                <Text className="text-black font-bold text-base">
-                  {intrantToEdit
-                    ? "Modification en cours..."
-                    : "Création en cours..."}
-                </Text>
+              {loading || isInitializing ? (
+                <View className="flex-row items-center">
+                  <ActivityIndicator size="small" color="black" />
+                  <Text className="text-black font-bold text-base ml-2">
+                    {isInitializing
+                      ? "Auth..."
+                      : intrantToEdit
+                      ? "Modification..."
+                      : "Création..."}
+                  </Text>
+                </View>
               ) : (
                 <Text className="text-black font-bold text-base">
                   {intrantToEdit ? "Modifier l'intrant" : "Créer l'intrant"}

@@ -1,3 +1,5 @@
+import { User } from "./user";
+
 // Types/authtype.ts
 export interface loginType {
     username: string;
@@ -5,7 +7,6 @@ export interface loginType {
     codeActeur: string;
 }
 
-// Format pour l'API
 export interface registerType {
     nomActeur: string;
     username: string;
@@ -14,11 +15,10 @@ export interface registerType {
     niveau3PaysActeur: string;
     password: string;
     localiteActeur: string;
-    speculation: string[]; // IDs des spéculations
-    typeActeur: string[]; // IDs des types d'acteur
+    speculation: string[];
+    typeActeur: string[];
 }
 
-// Format pour le formulaire (avec confirmPassword)
 export interface registerFormType extends Omit<registerType, 'speculation' | 'typeActeur'> {
     confirmPassword: string;
     speculation: string[];
@@ -26,7 +26,8 @@ export interface registerFormType extends Omit<registerType, 'speculation' | 'ty
 }
 
 export interface AuthContextType {
-    user: any | null;
+    user: User | null;
+    isInitializing: boolean;
     login: (data: loginType) => Promise<void>;
     loginCodePin: (data: loginType) => Promise<void>;
     register: (data: registerType) => Promise<void>;
@@ -46,4 +47,6 @@ export interface AuthContextType {
     errorSpeculations: string | null;
     errorNiveau3Pays: string | null;
     errorTypeActeur: string | null;
+    getUserInfo: () => Promise<User | null>;
+    updateUserInfo: (updatedUser: Partial<User>) => Promise<void>;
 }

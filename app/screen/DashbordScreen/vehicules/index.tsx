@@ -234,7 +234,7 @@ export default function VehiclesListScreen() {
                   onPress={() =>
                     router.push("/screen/DashbordScreen/form/AddVehicleScreen")
                   }
-                  className="bg-primary px-6 py-3 rounded-lg"
+                  className="bg-yellow-500 px-6 py-3 rounded-lg"
                 >
                   <Text className="text-white font-medium">
                     Ajouter mon premier véhicule

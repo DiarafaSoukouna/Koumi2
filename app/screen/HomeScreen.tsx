@@ -4,10 +4,15 @@ import { ScrollView, Text, View } from "react-native";
 import Header from "@/components/common/Header";
 import SearchBar from "@/components/common/SearchBar";
 import AllProductsGrid from "@/components/home/AllProductsGrid";
+import AllProductsGridSkeleton from "@/components/home/AllProductsGridSkeleton";
 import FeaturedStoresList from "@/components/home/FeaturedStoresList";
+import FeaturedStoresListSkeleton from "@/components/home/FeaturedStoresListSkeleton";
 import FiliereGrid from "@/components/home/FiliereGrid";
+import FiliereGridSkeleton from "@/components/home/FiliereGridSkeleton";
 import HotProductsList from "@/components/home/HotProductsList";
+import HotProductsListSkeleton from "@/components/home/HotProductsListSkeleton";
 import IntrantsPreviewList from "@/components/home/IntrantsPreviewList";
+import IntrantsPreviewListSkeleton from "@/components/home/IntrantsPreviewListSkeleton";
 import PromotionCarousel from "@/components/home/PromotionCarousel";
 import { promotions } from "@/constants/data";
 import { useHome } from "@/context/HomeContext";
@@ -22,8 +27,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
   const {
     magasins,
+    loadingMagasins,
     getAllMagasins,
     stocks,
+    loadingStocks,
     getAllStock,
     typeActeur,
     getAllTypeActeurs,
@@ -241,11 +248,7 @@ export default function HomeScreen() {
 
       {/* Grille des filières */}
       {loadingFillieres ? (
-        <View className="py-4">
-          <Text className="text-center text-gray-500">
-            Chargement des filières...
-          </Text>
-        </View>
+        <FiliereGridSkeleton />
       ) : fillieres.length > 0 ? (
         <FiliereGrid filieres={fillieres} onFilierePress={handleFilierePress} />
       ) : (
@@ -256,35 +259,48 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <IntrantsPreviewList
-        intrants={GetAllintrantList}
-        onPressItem={handleIntrantPress}
-      />
+      {loading ? (
+        <IntrantsPreviewListSkeleton />
+      ) : (
+        <IntrantsPreviewList
+          intrants={GetAllintrantList}
+          onPressItem={handleIntrantPress}
+        />
+      )}
 
-      {/* Magasins populaires */}
-      <FeaturedStoresList
-        stores={magasins}
-        onStorePress={handleStorePress}
-        onSeeAllPress={() => router.push("/(tabs)/Magasin")}
-      />
+      {loadingMagasins ? (
+        <FeaturedStoresListSkeleton />
+      ) : (
+        <FeaturedStoresList
+          stores={magasins}
+          onStorePress={handleStorePress}
+          onSeeAllPress={() => router.push("/(tabs)/Magasin")}
+        />
+      )}
 
-      {/* Produits populaires */}
-      <HotProductsList
-        products={stocks}
-        favorites={favorites}
-        onProductPress={handleProductPress}
-        onFavoritePress={toggleFavorite}
-        onSeeAllPress={() => console.log("See all hot products")}
-      />
+      {loadingStocks ? (
+        <HotProductsListSkeleton />
+      ) : (
+        <HotProductsList
+          products={stocks}
+          favorites={favorites}
+          onProductPress={handleProductPress}
+          onFavoritePress={toggleFavorite}
+          onSeeAllPress={() => console.log("See all hot products")}
+        />
+      )}
 
-      {/* Tous les produits */}
-      <AllProductsGrid
-        products={stocks}
-        favorites={favorites}
-        onProductPress={handleProductPress}
-        onFavoritePress={toggleFavorite}
-        onSeeAllPress={() => console.log("See all products")}
-      />
+      {loadingStocks ? (
+        <AllProductsGridSkeleton />
+      ) : (
+        <AllProductsGrid
+          products={stocks}
+          favorites={favorites}
+          onProductPress={handleProductPress}
+          onFavoritePress={toggleFavorite}
+          onSeeAllPress={() => console.log("See all products")}
+        />
+      )}
     </>
   );
   const handleLocationPress = () => {
@@ -296,8 +312,6 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 bg-white">
       <Header
         title="KOUMI"
-        // location="Yaoundé, Cameroun"
-        // cartCount={cart.length}
         notificationCount={3}
         onNotificationPress={() => console.log("Notification")}
         onConnecterPress={() => router.push("/screen/(auth)/login")}

@@ -1,5 +1,6 @@
 import { FormInput } from "@/components/common/CustomInput";
 import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useAuth } from "@/context/auth";
 import { useMerchant } from "@/context/Merchant";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -7,6 +8,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, MapPin } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -29,7 +31,7 @@ export default function AddProductionZoneScreen() {
   const params = useLocalSearchParams();
   const zoneId = params.id as string | undefined;
   const isEditMode = !!zoneId;
-  const idActeur = "d48lrq5lpgw53adl0yq1";
+  const { user, isInitializing } = useAuth();
   const generateCodeZone = () => {
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -46,7 +48,7 @@ export default function AddProductionZoneScreen() {
     latitude: "",
     longitude: "",
     codeZone: generateCodeZone(),
-    acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+    acteur: { idActeur: user?.idActeur },
     image: "",
   });
 
@@ -76,7 +78,7 @@ export default function AddProductionZoneScreen() {
           latitude: zone.latitude?.toString() || "",
           longitude: zone.longitude?.toString() || "",
           codeZone: zone.codeZone || "",
-          acteur: { idActeur },
+          acteur: { idActeur: user?.idActeur || "" },
           image: zone.photoZone || "",
         });
 
@@ -86,6 +88,23 @@ export default function AddProductionZoneScreen() {
       }
     }
   }, [isEditMode, zoneId, zonesProduction]);
+
+  // Vérifier l'authentification
+  useEffect(() => {
+    if (!isInitializing && !user) {
+      Alert.alert(
+        "Non connecté",
+        "Vous devez être connecté pour accéder à cette page.",
+        [
+          {
+            text: "Se connecter",
+            onPress: () => router.replace("/screen/(auth)/login"),
+          },
+          { text: "Annuler", onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [isInitializing, user]);
 
   // Sélection d'image
   const pickImage = async () => {
@@ -172,7 +191,7 @@ export default function AddProductionZoneScreen() {
       nomZoneProduction: "",
       latitude: "",
       longitude: "",
-      acteur: "d48lrq5lpgw53adl0yq1",
+      acteur: { idActeur: user?.idActeur },
     };
     let isValid = true;
 
@@ -210,9 +229,10 @@ export default function AddProductionZoneScreen() {
         longitude: formData.longitude,
         image: imageFile || undefined,
         personneModif: null,
-        acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+        acteur: { idActeur: user?.idActeur || "" },
         codeZone: formData.codeZone,
       };
+      console.log("Submitting with user ID:", zoneData);
 
       if (isEditMode && zoneId) {
         await updateZoneProduction(zoneId, zoneData);
@@ -298,7 +318,7 @@ export default function AddProductionZoneScreen() {
                 </Text>
                 <TouchableOpacity
                   onPress={getCurrentLocation}
-                  className="flex-row items-center bg-primary/10 px-3 py-2 rounded-lg"
+                  className="flex-row items-center bg-yellow-500 px-3 py-2 rounded-lg"
                   activeOpacity={0.7}
                 >
                   <MapPin size={16} color="#079C48" className="mr-2" />
@@ -340,15 +360,22 @@ export default function AddProductionZoneScreen() {
               disabled={loadingZones}
               className={`
                 w-full py-4 rounded-lg items-center justify-center
-                ${loadingZones ? "bg-primary/70" : "bg-primary"}
+                ${loadingZones ? "bg-yellow-500" : "bg-yellow-500"}
                 active:opacity-90
               `}
               activeOpacity={0.8}
             >
-              {loadingZones ? (
-                <Text className="text-black font-bold text-base">
-                  Création en cours...
-                </Text>
+              {loadingZones || isInitializing ? (
+                <View className="flex-row items-center">
+                  <ActivityIndicator size="small" color="black" />
+                  <Text className="text-black font-bold text-base ml-2">
+                    {isInitializing
+                      ? "Auth..."
+                      : isEditMode
+                      ? "Modification..."
+                      : "Création..."}
+                  </Text>
+                </View>
               ) : (
                 <Text className="text-black font-bold text-base">
                   {isEditMode ? "Modifier la zone" : "Créer la zone"}

@@ -9,13 +9,14 @@ import { TYPE_ACTEUR_T } from "@/Types";
 import { AuthContextType, loginType, registerType } from "@/Types/authtype";
 import { Niveau3Pays } from "@/Types/Niveau3Pays";
 import { Speculation } from "@/Types/Speculation";
+import { User } from "@/Types/user";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AuthContext } from "./authContext";
 
 export default ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [speculations, setSpeculations] = useState<Speculation[]>([]);
@@ -29,6 +30,27 @@ export default ({ children }: { children: React.ReactNode }) => {
   const [typeActeur, setTypeActeur] = useState<TYPE_ACTEUR_T[]>([]);
   const [loadingTypeActeur, setLoadingTypeActeur] = useState(false);
   const [errorTypeActeur, setErrorTypeActeur] = useState<string | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Fonction pour charger l'utilisateur depuis AsyncStorage au démarrage
+  const loadUserFromStorage = async () => {
+    try {
+      setIsInitializing(true);
+      const userData = await AsyncStorage.getItem("userData");
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'utilisateur:", error);
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUserFromStorage();
+  }, []);
 
   const login = async (data: loginType) => {
     setIsLoading(true);
@@ -37,13 +59,11 @@ export default ({ children }: { children: React.ReactNode }) => {
       const response = await loginUser(data);
 
       await AsyncStorage.setItem("userToken", response.token || "");
-      await AsyncStorage.setItem(
-        "userData",
-        JSON.stringify(response.user || response)
-      );
-      console.log("camara macky", response.user || response);
+      const userData = response.user || response;
+      await AsyncStorage.setItem("userData", JSON.stringify(userData));
 
-      setUser(response.user || response);
+      console.log("Connexion réussie", userData);
+      setUser(userData);
       router.replace("/(tabs)");
     } catch (error: any) {
       setError(error.response?.data?.message || "Erreur de connexion");
@@ -53,8 +73,6 @@ export default ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // login avec code pin
-
   const loginCodePin = async (data: loginType) => {
     setIsLoading(true);
     setError(null);
@@ -62,13 +80,11 @@ export default ({ children }: { children: React.ReactNode }) => {
       const response = await loginUserCodePin(data);
 
       await AsyncStorage.setItem("userToken", response.token || "");
-      await AsyncStorage.setItem(
-        "userData",
-        JSON.stringify(response.user || response)
-      );
-      console.log("connexion reussi avec code pin", response.user || response);
+      const userData = response.user || response;
+      await AsyncStorage.setItem("userData", JSON.stringify(userData));
 
-      setUser(response.user || response);
+      console.log("Connexion réussie avec code pin", userData);
+      setUser(userData);
       router.replace("/(tabs)");
     } catch (error: any) {
       setError(error.response?.data?.message || "Erreur de connexion");
@@ -84,14 +100,11 @@ export default ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await createUser(data);
 
-      // Après l'inscription, connecter automatiquement
       if (response.token) {
         await AsyncStorage.setItem("userToken", response.token);
-        await AsyncStorage.setItem(
-          "userData",
-          JSON.stringify(response.user || response)
-        );
-        setUser(response.user || response);
+        const userData = response.user || response;
+        await AsyncStorage.setItem("userData", JSON.stringify(userData));
+        setUser(userData);
         router.replace("/(tabs)");
       } else {
         router.replace("/screen/(auth)/login");
@@ -120,6 +133,38 @@ export default ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Récupérer les informations utilisateur depuis AsyncStorage
+  const getUserInfo = async (): Promise<User | null> => {
+    try {
+      const userData = await AsyncStorage.getItem("userData");
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des infos utilisateur:",
+        error
+      );
+      return null;
+    }
+  };
+
+  // Mettre à jour les informations utilisateur
+  const updateUserInfo = async (updatedUser: Partial<User>) => {
+    try {
+      if (user) {
+        const newUser = { ...user, ...updatedUser };
+        await AsyncStorage.setItem("userData", JSON.stringify(newUser));
+        setUser(newUser);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de l'utilisateur:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadUserFromStorage();
+  }, []);
+
+  // Reste du code reste identique...
   const getAllSpeculation = async () => {
     try {
       setLoadingSpeculations(true);
@@ -168,6 +213,7 @@ export default ({ children }: { children: React.ReactNode }) => {
 
   const value: AuthContextType = {
     user,
+    isInitializing,
     login,
     loginCodePin,
     register,
@@ -187,6 +233,8 @@ export default ({ children }: { children: React.ReactNode }) => {
     errorSpeculations,
     errorNiveau3Pays,
     errorTypeActeur,
+    getUserInfo,
+    updateUserInfo,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -559,9 +559,7 @@ export default function IntrantDetailScreen() {
               onPress={handleWhatsApp}
               className="flex-1 bg-[#25D366] py-4 rounded-xl items-center"
             >
-              <Text className="text-white font-semibold text-lg">
-                Contacter sur WhatsApp
-              </Text>
+              <Text className="text-white font-semibold text-lg">WhatsApp</Text>
             </TouchableOpacity>
           )}
 

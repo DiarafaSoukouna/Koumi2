@@ -10,7 +10,6 @@ import getAllStocksByFiliere from "@/service/stocks/getAll";
 import { getAllTypeActeur } from "@/service/typeActeur";
 import { ReactNode, useState } from "react";
 import { HomeContext } from "./homeContext";
-const ACTEUR_ID = "d48lrq5lpgw53adl0yq1";
 
 export default ({ children }: { children: ReactNode }) => {
   // États pour les données

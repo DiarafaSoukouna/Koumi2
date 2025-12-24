@@ -1,6 +1,7 @@
 import { FormInput } from "@/components/common/CustomInput";
 import { FormSelect } from "@/components/common/CustomSelect";
 import { ImagePickerSection } from "@/components/common/ImagePickerSection";
+import { useAuth } from "@/context/auth";
 import { useMerchant } from "@/context/Merchant";
 import { createMagasin } from "@/service/magasin/create";
 import * as ImagePicker from "expo-image-picker";
@@ -15,6 +16,7 @@ import {
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -40,6 +42,7 @@ export default function CreateStoreScreen() {
 
   const { id } = useLocalSearchParams();
   const isEditing = !!id;
+  const { user, isInitializing } = useAuth();
 
   const [formData, setFormData] = useState({
     nomMagasin: "",
@@ -50,7 +53,7 @@ export default function CreateStoreScreen() {
     latitude: "",
     longitude: "",
     photo: "",
-    acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+    acteur: { idActeur: user?.idActeur },
   });
 
   const [imagePreview, setImagePreview] = useState("");
@@ -75,8 +78,26 @@ export default function CreateStoreScreen() {
         await fetchMagasins();
       }
     };
+
     loadData();
   }, []);
+
+  // Vérifier l'authentification
+  useEffect(() => {
+    if (!isInitializing && !user) {
+      Alert.alert(
+        "Non connecté",
+        "Vous devez être connecté pour accéder à cette page.",
+        [
+          {
+            text: "Se connecter",
+            onPress: () => router.replace("/screen/(auth)/login"),
+          },
+          { text: "Annuler", onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [isInitializing, user]);
 
   // Pré-remplir le formulaire en mode édition
   useEffect(() => {
@@ -92,7 +113,7 @@ export default function CreateStoreScreen() {
           latitude: storeToEdit.latitude || "",
           longitude: storeToEdit.longitude || "",
           photo: "", // Ne pas pré-remplir l'image fichier, juste la preview si dispo
-          acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+          acteur: { idActeur: user?.idActeur || "" },
         });
 
         setImagePreview(storeToEdit.photo || "");
@@ -217,7 +238,7 @@ export default function CreateStoreScreen() {
       contactMagasin: "",
       pays: "",
       region: "",
-      acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+      acteur: { idActeur: user?.idActeur },
     };
     let isValid = true;
 
@@ -254,6 +275,8 @@ export default function CreateStoreScreen() {
     if (!validateForm()) {
       return;
     }
+    console.log("id user", user?.idActeur);
+    console.log("id userddd", formData.acteur.idActeur);
 
     try {
       const storeData = {
@@ -265,7 +288,7 @@ export default function CreateStoreScreen() {
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
         photo: imageFile || "",
-        acteur: { idActeur: "d48lrq5lpgw53adl0yq1" },
+        acteur: { idActeur: user?.idActeur || "" },
       };
 
       if (isEditing) {
@@ -402,7 +425,7 @@ export default function CreateStoreScreen() {
                 </Text>
                 <TouchableOpacity
                   onPress={getCurrentLocation}
-                  className="flex-row items-center bg-primary/10 px-3 py-2 rounded-lg"
+                  className="flex-row items-center bg-yellow-500 px-3 py-2 rounded-lg"
                   activeOpacity={0.7}
                 >
                   <Navigation size={16} color="#079C48" className="mr-2" />
@@ -442,15 +465,22 @@ export default function CreateStoreScreen() {
               disabled={loadingMagasins}
               className={`
                 w-full py-4 rounded-lg items-center justify-center
-                ${loadingMagasins ? "bg-primary/70" : "bg-primary"}
+                ${loadingMagasins ? "bg-yellow-500" : "bg-yellow-500"}
                 active:opacity-90
               `}
               activeOpacity={0.8}
             >
-              {loadingMagasins ? (
-                <Text className="text-black font-bold text-base">
-                  Création en cours...
-                </Text>
+              {loadingMagasins || isInitializing ? (
+                <View className="flex-row items-center">
+                  <ActivityIndicator size="small" color="black" />
+                  <Text className="text-black font-bold text-base ml-2">
+                    {isInitializing
+                      ? "Auth..."
+                      : isEditing
+                      ? "Mise à jour..."
+                      : "Création..."}
+                  </Text>
+                </View>
               ) : (
                 <Text className="text-black font-bold text-base">
                   {isEditing ? "Mettre à jour" : "Créer le magasin"}

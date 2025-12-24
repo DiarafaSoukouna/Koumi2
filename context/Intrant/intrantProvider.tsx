@@ -15,10 +15,9 @@ import { getAllIntrant } from "@/service/intrant/getAll";
 import { getAllIntrantByActeur } from "@/service/intrant/getAllByActeur";
 import { updateIntrant as updateIntrantService } from "@/service/intrant/update";
 import { getAllMonnaie } from "@/service/monnaie/getAllMonnaie";
-import { ReactNode, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
+import { useAuth } from "../auth";
 import { IntrantContext } from "./intrantContext";
-
-const ACTEUR_ID = "d48lrq5lpgw53adl0yq1";
 
 export default ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
@@ -38,19 +37,36 @@ export default ({ children }: { children: ReactNode }) => {
   const [formes, setFormes] = useState<Forme[]>([]);
   const [loadingByActeur, setLoadingByActeur] = useState(false);
   const [errorByActeur, setErrorByActeur] = useState<string | null>(null);
+  const { user } = useAuth();
 
-  const getAllByActeur = async () => {
+  const getActeurId = useCallback(() => {
+    if (!user) {
+      throw new Error("Utilisateur non connecté");
+    }
+    if (!user.idActeur) {
+      throw new Error("ID utilisateur non disponible");
+    }
+    return user.idActeur;
+  }, [user]);
+
+  const getAllByActeur = useCallback(async () => {
+    if (!user) {
+      setErrorByActeur("Utilisateur non connecté");
+      return;
+    }
     try {
       setLoadingByActeur(true);
       setErrorByActeur(null);
-      const data = await getAllIntrantByActeur();
+      const acteurId = getActeurId();
+      console.log("ID de l'acteur:", acteurId);
+      const data = await getAllIntrantByActeur(acteurId);
       setGetAllIntranByActeur(data);
     } catch (error: any) {
       setErrorByActeur(error.message);
     } finally {
       setLoadingByActeur(false);
     }
-  };
+  }, [user, getActeurId]);
 
   const fetchIntrant = async () => {
     try {
@@ -65,46 +81,61 @@ export default ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const createIntrant = async (data: CreateIntrantData) => {
-    try {
-      setError(null);
-      const intrantData = {
-        ...data,
-        acteur: { idActeur: ACTEUR_ID },
-      };
-      await createIntrantService(intrantData);
-      await fetchIntrant(); // Recharger la liste
-    } catch (error: any) {
-      setError(error.message);
-      throw error;
-    }
-  };
+  const createIntrant = useCallback(
+    async (data: CreateIntrantData) => {
+      try {
+        setError(null);
+        const acteurId = getActeurId();
+        const intrantData = {
+          ...data,
+          acteur: { idActeur: acteurId },
+        };
+        await createIntrantService(intrantData);
+        await getAllByActeur(); // Recharger la liste par acteur
+        await fetchIntrant(); // Recharger la liste globale
+      } catch (error: any) {
+        setError(error.message);
+        throw error;
+      }
+    },
+    [getAllByActeur, fetchIntrant, getActeurId]
+  );
 
-  const updateIntrant = async (id: string, data: UpdateIntrantData) => {
-    try {
-      setError(null);
-      const intrantData = {
-        ...data,
-        acteur: { idActeur: ACTEUR_ID },
-      };
-      await updateIntrantService(id, intrantData);
-      await fetchIntrant(); // Recharger la liste
-    } catch (error: any) {
-      setError(error.message);
-      throw error; // Propager l'erreur pour la gérer dans le composant
-    }
-  };
+  const updateIntrant = useCallback(
+    async (id: string, data: UpdateIntrantData) => {
+      try {
+        setError(null);
+        const acteurId = getActeurId();
+        const intrantData = {
+          ...data,
+          acteur: { idActeur: acteurId },
+        };
+        await updateIntrantService(id, intrantData);
+        await getAllByActeur(); // Recharger la liste par acteur
+        await fetchIntrant(); // Recharger la liste globale
+      } catch (error: any) {
+        setError(error.message);
+        throw error; // Propager l'erreur pour la gérer dans le composant
+      }
+    },
+    [getAllByActeur, fetchIntrant, getActeurId]
+  );
 
-  const deleteIntrant = async (id: string) => {
-    try {
-      setError(null);
-      await deleteIntrantService(id);
-      await fetchIntrant();
-    } catch (error: any) {
-      setError(error.message);
-      throw error;
-    }
-  };
+  const deleteIntrant = useCallback(
+    async (id: string) => {
+      try {
+        setError(null);
+        getActeurId();
+        await deleteIntrantService(id);
+        await getAllByActeur(); // Recharger la liste par acteur
+        await fetchIntrant();
+      } catch (error: any) {
+        setError(error.message);
+        throw error;
+      }
+    },
+    [getAllByActeur, fetchIntrant, getActeurId]
+  );
 
   // Monnaies
   const fetchMonnaies = async () => {
@@ -147,6 +178,16 @@ export default ({ children }: { children: ReactNode }) => {
       setLoadingFormes(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      getAllByActeur();
+      fetchIntrant();
+      fetchCategories();
+      fetchFormes();
+      fetchMonnaies();
+    }
+  }, [user, getAllByActeur]);
 
   const value: IntrantContextTypes = {
     GetAllIntranByActeur,

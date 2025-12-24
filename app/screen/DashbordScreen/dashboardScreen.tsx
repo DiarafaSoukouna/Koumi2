@@ -1,4 +1,5 @@
 import { StatCard } from "@/components/dashboard/StatCard";
+import { useAuth } from "@/context/auth";
 import { useIntrant } from "@/context/Intrant";
 import { useMerchant } from "@/context/Merchant";
 import { useTransporteur } from "@/context/Transporteur";
@@ -35,39 +36,39 @@ export default function DashboardScreen() {
   const merchant = useMerchant();
   const transporteur = useTransporteur();
   const intrant = useIntrant();
+  const { user, isInitializing } = useAuth(); // Récupérer l'utilisateur et l'état d'initialisation depuis l'auth
 
   // États
   const [refreshing, setRefreshing] = useState(false);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
-  // Récupérer l'utilisateur depuis le contexte d'authentification si disponible
-  const user = useMemo(() => {
-    // Si vous avez un contexte d'authentification, utilisez-le ici
-    // Par exemple: const { user } = useAuth();
-
-    // TEMPORAIRE: Utiliser un ID utilisateur codé en dur pour le développement
-    return {
-      idActeur: "d48lrq5lpgw53adl0yq1",
-      nomActeur: "Macky", // Ou récupérer depuis une API si possible, sinon valeur par défaut
-      typeActeur: [{ libelle: "Marchand" }],
-      // Ajouter d'autres champs si nécessaire
-    };
-  }, []);
-
-  // Extraire nomActeur et typeActeur
+  // Extraire nomActeur et types d'acteur
   const nomActeur = user?.nomActeur || "Utilisateur";
-  const typeActeur = user?.typeActeur?.[0]?.libelle || "Acteur";
+  const typeActeurs = user?.typeActeur || [];
 
-  // Vérifier si l'utilisateur est transporteur
+  // Vérifier les types d'acteur
   const isTransporteur = useMemo(() => {
-    const libelle = user?.typeActeur?.[0]?.libelle;
-    return libelle ? libelle.toLowerCase().includes("Transporteur") : false;
-  }, [user]);
+    return typeActeurs.some((type) =>
+      type.libelle.toLowerCase().includes("transporteur")
+    );
+  }, [typeActeurs]);
 
-  const isfournisseur = useMemo(() => {
-    const libelle = user?.typeActeur?.[0]?.libelle;
-    return libelle ? libelle.toLowerCase().includes("Fournisseur") : false;
-  }, [user]);
+  const isFournisseur = useMemo(() => {
+    return typeActeurs.some((type) =>
+      type.libelle.toLowerCase().includes("fournisseur")
+    );
+  }, [typeActeurs]);
+
+  const isProducteur = useMemo(() => {
+    return typeActeurs.some((type) =>
+      type.libelle.toLowerCase().includes("producteur")
+    );
+  }, [typeActeurs]);
+
+  // Obtenir tous les libellés de type d'acteur pour affichage
+  const typeActeurLabels = useMemo(() => {
+    return typeActeurs.map((t) => t.libelle).join(", ") || "Acteur";
+  }, [typeActeurs]);
 
   // Fonction pour rafraîchir toutes les données
   const refreshData = useCallback(async () => {
@@ -77,17 +78,22 @@ export default function DashboardScreen() {
     try {
       const promises = [];
 
-      // Toujours charger les données du marchand
+      // Toujours charger les données du marchand (magasins et produits)
       promises.push(merchant.fetchMagasins());
       promises.push(merchant.fetchStocks());
-      promises.push(merchant.fetchZonesProduction());
 
-      // Charger les données du transporteur
-      if (transporteur.fetchVehicules) {
+      // Charger les zones de production seulement si l'utilisateur est producteur
+      if (isProducteur && merchant.fetchZonesProduction) {
+        promises.push(merchant.fetchZonesProduction());
+      }
+
+      // Charger les données du transporteur seulement si l'utilisateur est transporteur
+      if (isTransporteur && transporteur.fetchVehicules) {
         promises.push(transporteur.fetchVehicules());
       }
-      // charger les données intrant
-      if (intrant.getAllByActeur) {
+
+      // Charger les données d'intrants seulement si l'utilisateur est fournisseur
+      if (isFournisseur && intrant.getAllByActeur) {
         promises.push(intrant.getAllByActeur());
       }
 
@@ -100,21 +106,32 @@ export default function DashboardScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, [merchant, transporteur, isTransporteur, isfournisseur]);
+  }, [
+    merchant,
+    transporteur,
+    intrant,
+    isTransporteur,
+    isFournisseur,
+    isProducteur,
+  ]);
 
   // Rafraîchir au montage
   useEffect(() => {
-    refreshData();
-  }, []);
+    if (!isInitializing) {
+      refreshData();
+    }
+  }, [isInitializing]);
 
-  // Calcul des KPI simplifié
+  // Calcul des KPI basé sur les types d'acteur
   const kpis = useMemo(() => {
     const calculateKPIs = () => {
       const totalProducts = merchant.stocks.length;
       const totalStores = merchant.magasins.length;
-      const totalZones = merchant.zonesProduction.length;
-      const totalIntrants = intrant.GetAllIntranByActeur.length;
-      const totalVehicles = transporteur.vehicules.length;
+      const totalZones = isProducteur ? merchant.zonesProduction.length : 0;
+      const totalIntrants = isFournisseur
+        ? intrant.GetAllIntranByActeur.length
+        : 0;
+      const totalVehicles = isTransporteur ? transporteur.vehicules.length : 0;
 
       // Produits par magasin
       const productsPerStore =
@@ -137,33 +154,69 @@ export default function DashboardScreen() {
     merchant.zonesProduction,
     transporteur.vehicules,
     intrant.GetAllIntranByActeur,
+    isProducteur,
+    isFournisseur,
+    isTransporteur,
   ]);
 
   // Gestion du chargement
   const isLoading = useMemo(() => {
-    return (
-      merchant.loadingMagasins ||
-      merchant.loadingStocks ||
-      merchant.loadingZones ||
-      transporteur.loadingVehicules ||
-      intrant.loadingByActeur
-    );
-  }, [merchant, transporteur, intrant]);
+    const baseLoading = merchant.loadingMagasins || merchant.loadingStocks;
+
+    if (isProducteur && merchant.loadingZones) return true;
+    if (isTransporteur && transporteur.loadingVehicules) return true;
+    if (isFournisseur && intrant.loadingByActeur) return true;
+
+    return baseLoading;
+  }, [
+    merchant,
+    transporteur,
+    intrant,
+    isProducteur,
+    isTransporteur,
+    isFournisseur,
+  ]);
 
   // Calcul de la largeur des cartes d'actions rapides
   const quickActionWidth = useMemo(() => {
-    const screenPadding = 32; // 4 * 8 (px-4 = 16px de chaque côté)
-    const gap = 12; // gap-3 = 12px
+    const screenPadding = 32;
+    const gap = 12;
     return (width - screenPadding - gap) / 2;
   }, []);
 
-  // Afficher l'écran de chargement
-  if (isLoading && !refreshing) {
+  // Compter le nombre de cartes KPI à afficher
+  const kpiCardsToShow = useMemo(() => {
+    let count = 2; // Produits et Magasins sont toujours affichés
+
+    if (isProducteur) count++; // Zones de production
+    if (isTransporteur) count++; // Véhicules
+    if (isFournisseur) count++; // Intrants agricoles
+
+    return count;
+  }, [isProducteur, isTransporteur, isFournisseur]);
+
+  // Compter le nombre de boutons d'actions rapides à afficher
+  const quickActionCardsToShow = useMemo(() => {
+    let count = 2; // Ajouter un produit et Créer un magasin sont toujours affichés
+
+    if (isProducteur) count++; // Créer une zone
+    if (isTransporteur) count++; // Ajouter un véhicule
+    if (isFournisseur) count++; // Ajouter un intrant
+
+    return count;
+  }, [isProducteur, isTransporteur, isFournisseur]);
+
+  // Afficher l'écran de chargement pendant l'initialisation ou le chargement des données
+  if (isInitializing || (isLoading && !refreshing)) {
     return (
       <SafeAreaView className="flex-1 bg-white">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#079C48" />
-          <Text className="text-gray-500 mt-4">Chargement du dashboard...</Text>
+          <Text className="text-gray-500 mt-4">
+            {isInitializing
+              ? "Initialisation..."
+              : "Chargement du dashboard..."}
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -178,7 +231,7 @@ export default function DashboardScreen() {
             <View>
               <Text className="text-xl font-bold text-gray-800">Dashboard</Text>
               <Text className="text-gray-500 text-xs">
-                {nomActeur} • {typeActeur}
+                {nomActeur} • {typeActeurLabels}
               </Text>
             </View>
           </View>
@@ -203,6 +256,7 @@ export default function DashboardScreen() {
           <View>
             {/* Grille 2x2 pour les KPI */}
             <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+              {/* Produits - Toujours affiché */}
               <View style={{ width: quickActionWidth }}>
                 <StatCard
                   title="Produits"
@@ -218,6 +272,7 @@ export default function DashboardScreen() {
                 />
               </View>
 
+              {/* Magasins - Toujours affiché */}
               <View style={{ width: quickActionWidth }}>
                 <StatCard
                   title="Magasins"
@@ -231,42 +286,64 @@ export default function DashboardScreen() {
                 />
               </View>
 
-              <View style={{ width: quickActionWidth }}>
-                <StatCard
-                  title="Zones de production"
-                  value={formatNumber(kpis.totalZones)}
-                  icon={Globe}
-                  color="#8B5CF6"
-                  subtitle="Zones actives"
-                  onPress={() =>
-                    router.push("/screen/DashbordScreen/zone/ZonesListScreen")
-                  }
-                />
-              </View>
+              {/* Zones de production - Seulement pour Producteur */}
+              {isProducteur && (
+                <View style={{ width: quickActionWidth }}>
+                  <StatCard
+                    title="Zones de production"
+                    value={formatNumber(kpis.totalZones)}
+                    icon={Globe}
+                    color="#8B5CF6"
+                    subtitle="Zones actives"
+                    onPress={() =>
+                      router.push("/screen/DashbordScreen/zone/ZonesListScreen")
+                    }
+                  />
+                </View>
+              )}
 
-              <View style={{ width: quickActionWidth }}>
-                <StatCard
-                  title="Véhicules"
-                  value={formatNumber(kpis.totalVehicles)}
-                  icon={Car}
-                  color="#3B82F6"
-                  subtitle="Disponibles"
-                  onPress={() =>
-                    router.push("/screen/DashbordScreen/vehicules")
-                  }
-                />
-              </View>
-              <View style={{ width: quickActionWidth }}>
-                <StatCard
-                  title="Intrants agricoles"
-                  value={formatNumber(kpis.totalIntrants)}
-                  icon={PackageOpen}
-                  color="#079C48"
-                  subtitle="Disponibles"
-                  onPress={() => router.push("/screen/DashbordScreen/intrants")}
-                />
-              </View>
+              {/* Véhicules - Seulement pour Transporteur */}
+              {isTransporteur && (
+                <View style={{ width: quickActionWidth }}>
+                  <StatCard
+                    title="Véhicules"
+                    value={formatNumber(kpis.totalVehicles)}
+                    icon={Car}
+                    color="#3B82F6"
+                    subtitle="Disponibles"
+                    onPress={() =>
+                      router.push("/screen/DashbordScreen/vehicules")
+                    }
+                  />
+                </View>
+              )}
+
+              {/* Intrants agricoles - Seulement pour Fournisseur */}
+              {isFournisseur && (
+                <View style={{ width: quickActionWidth }}>
+                  <StatCard
+                    title="Intrants agricoles"
+                    value={formatNumber(kpis.totalIntrants)}
+                    icon={PackageOpen}
+                    color="#10B981"
+                    subtitle="Disponibles"
+                    onPress={() =>
+                      router.push("/screen/DashbordScreen/intrants")
+                    }
+                  />
+                </View>
+              )}
             </View>
+
+            {/* Message si peu de cartes */}
+            {kpiCardsToShow < 3 && (
+              <View className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <Text className="text-yellow-800 text-sm text-center">
+                  Vous avez accès à {kpiCardsToShow} types de ressources.
+                  Contactez l'administration pour plus de fonctionnalités.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Section Actions rapides */}
@@ -279,7 +356,7 @@ export default function DashboardScreen() {
 
             {/* Grille 2x2 pour les actions rapides */}
             <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-              {/* Ajouter un produit */}
+              {/* Ajouter un produit - Toujours affiché */}
               <TouchableOpacity
                 onPress={() =>
                   router.push("/screen/DashbordScreen/form/AddProductScreen")
@@ -298,7 +375,7 @@ export default function DashboardScreen() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Créer un magasin */}
+              {/* Créer un magasin - Toujours affiché */}
               <TouchableOpacity
                 onPress={() =>
                   router.push("/screen/DashbordScreen/form/CreateStoreScreen")
@@ -317,101 +394,103 @@ export default function DashboardScreen() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Ajouter un véhicule */}
-              <TouchableOpacity
-                onPress={() =>
-                  router.push("/screen/DashbordScreen/form/AddVehicleScreen")
-                }
-                style={{ width: quickActionWidth }}
-                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
-              >
-                <View className="w-14 h-14 bg-blue-100 rounded-full items-center justify-center mb-3">
-                  <Car size={24} color="#3B82F6" />
-                </View>
-                <Text className="font-medium text-gray-800 text-center text-sm mb-1">
-                  Ajouter un véhicule
-                </Text>
-                <Text className="text-gray-500 text-xs text-center">
-                  Transport & Livraison
-                </Text>
-              </TouchableOpacity>
-
-              {/* Créer une zone */}
-              <TouchableOpacity
-                onPress={() =>
-                  router.push(
-                    "/screen/DashbordScreen/form/AddProductionZoneScreen"
-                  )
-                }
-                style={{ width: quickActionWidth }}
-                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
-              >
-                <View className="w-14 h-14 bg-purple-100 rounded-full items-center justify-center mb-3">
-                  <Globe size={24} color="#8B5CF6" />
-                </View>
-                <Text className="font-medium text-gray-800 text-center text-sm mb-1">
-                  Créer une zone
-                </Text>
-                <Text className="text-gray-500 text-xs text-center">
-                  Zone de production
-                </Text>
-              </TouchableOpacity>
-              {/* icon intrant */}
-              <TouchableOpacity
-                onPress={() =>
-                  router.push("/screen/DashbordScreen/form/AddIntrantScreen")
-                }
-                style={{ width: quickActionWidth }}
-                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
-              >
-                <View className="w-14 h-14 bg-blue-100 rounded-full items-center justify-center mb-3">
-                  <Leaf size={24} color="#3B82F6" />
-                </View>
-                <Text className="font-medium text-gray-800 text-center text-sm mb-1">
-                  Ajouter un intrant
-                </Text>
-                <Text className="text-gray-500 text-xs text-center">
-                  Intrants
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Section Produits récents */}
-          {/* {merchant.stocks.length > 0 && (
-            <View>
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-lg font-bold text-gray-800">Produits récents</Text>
+              {/* Ajouter un véhicule - Seulement pour Transporteur */}
+              {isTransporteur && (
                 <TouchableOpacity
-                  className="flex-row items-center"
-                  onPress={() => router.push('/screen/DashbordScreen/ProductsListScreen')}
+                  onPress={() =>
+                    router.push("/screen/DashbordScreen/form/AddVehicleScreen")
+                  }
+                  style={{ width: quickActionWidth }}
+                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
                 >
-                  <Text className="text-orange-500 text-sm font-medium">Voir tous</Text>
-                  <ChevronRight size={16} color="#079C48" />
+                  <View className="w-14 h-14 bg-blue-100 rounded-full items-center justify-center mb-3">
+                    <Car size={24} color="#3B82F6" />
+                  </View>
+                  <Text className="font-medium text-gray-800 text-center text-sm mb-1">
+                    Ajouter un véhicule
+                  </Text>
+                  <Text className="text-gray-500 text-xs text-center">
+                    Transport & Livraison
+                  </Text>
                 </TouchableOpacity>
-              </View>
+              )}
 
-              <View className="space-y-2">
-                {merchant.stocks.slice(0, 3).map((stock) => (
-                  <ProductCard key={stock.idStock} product={stock} />
-                ))}
-              </View>
+              {/* Créer une zone - Seulement pour Producteur */}
+              {isProducteur && (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push(
+                      "/screen/DashbordScreen/form/AddProductionZoneScreen"
+                    )
+                  }
+                  style={{ width: quickActionWidth }}
+                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
+                >
+                  <View className="w-14 h-14 bg-purple-100 rounded-full items-center justify-center mb-3">
+                    <Globe size={24} color="#8B5CF6" />
+                  </View>
+                  <Text className="font-medium text-gray-800 text-center text-sm mb-1">
+                    Créer une zone
+                  </Text>
+                  <Text className="text-gray-500 text-xs text-center">
+                    Zone de production
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Ajouter un intrant - Seulement pour Fournisseur */}
+              {isFournisseur && (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push("/screen/DashbordScreen/form/AddIntrantScreen")
+                  }
+                  style={{ width: quickActionWidth }}
+                  className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 items-center justify-center active:opacity-90"
+                >
+                  <View className="w-14 h-14 bg-green-100 rounded-full items-center justify-center mb-3">
+                    <Leaf size={24} color="#10B981" />
+                  </View>
+                  <Text className="font-medium text-gray-800 text-center text-sm mb-1">
+                    Ajouter un intrant
+                  </Text>
+                  <Text className="text-gray-500 text-xs text-center">
+                    Intrants agricoles
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
-          )} */}
 
-          {/* Espace pour le bottom padding */}
-          {/* <View className="h-20" /> */}
+            {/* Message si peu de boutons d'action */}
+            {quickActionCardsToShow < 3 && (
+              <View className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <Text className="text-blue-800 text-sm text-center">
+                  Actions disponibles selon votre profil :{" "}
+                  {quickActionCardsToShow} actions
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
 
+      {/* Bouton flottant pour ajouter un produit - Toujours visible */}
       <TouchableOpacity
         onPress={() =>
           router.push("/screen/DashbordScreen/form/AddProductScreen")
         }
-        className="absolute bottom-6 right-6 bg-yellow-500 w-14 h-14 rounded-full items-center justify-center shadow-lg"
+        className="absolute bottom-6 right-6 bg-yellow-500 w-14 h-14 rounded-full items-center justify-center shadow-lg active:opacity-80"
       >
         <Plus size={24} color="black" />
       </TouchableOpacity>
+
+      {/* Afficher les erreurs */}
+      {/* {dashboardError && (
+        <View className="absolute bottom-24 left-4 right-4 bg-red-50 border border-red-200 rounded-lg p-3">
+          <Text className="text-red-700 text-sm text-center">
+            {dashboardError}
+          </Text>
+        </View>
+      )} */}
     </SafeAreaView>
   );
 }

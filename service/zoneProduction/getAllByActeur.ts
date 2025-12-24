@@ -1,13 +1,21 @@
 import axiosInstance from "@/constants/axiosInstance";
 import { ZoneProduction } from '@/Types/merchantType';
 
-const ACTEUR_ID = 'd48lrq5lpgw53adl0yq1'
 
-export const getAllZonesByActeur = async (): Promise<ZoneProduction[]> => {
+export const getAllZonesByActeur = async (acteurId : string): Promise<ZoneProduction[]> => {
   try {
-    const response = await axiosInstance.get(`/ZoneProduction/getAllZonesByActeurs/${ACTEUR_ID}`)
-    return response.data
+    if (!acteurId) {
+      throw new Error("ID de l'acteur manquant");
+    }
+    
+    const response = await axiosInstance.get(`/ZoneProduction/getAllZonesByActeurs/${acteurId}`)
+    return response.data || []
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || 'Erreur lors de la récupération des zones de production')
+    if (error.response?.data?.message?.toLowerCase().includes('aucun zone')) {
+      return []
+    }
+    console.error('Erreur lors de la récupération des zones:', error.response?.data?.message || error.message)
+    return []
   }
 }
+
