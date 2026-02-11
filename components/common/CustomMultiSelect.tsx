@@ -50,7 +50,7 @@ export const CustomMultiSelect: React.FC<CustomMultiSelectProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const selectedItems = items.filter((item) =>
-    selectedValues.includes(item.value)
+    selectedValues.includes(item.value),
   );
   const displayText =
     selectedItems.length > 0
@@ -59,7 +59,7 @@ export const CustomMultiSelect: React.FC<CustomMultiSelectProps> = ({
 
   const filteredItems = searchable
     ? items.filter((item) =>
-        item.label.toLowerCase().includes(searchQuery.toLowerCase())
+        item.label.toLowerCase().includes(searchQuery.toLowerCase()),
       )
     : items;
 

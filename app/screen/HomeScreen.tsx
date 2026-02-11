@@ -89,18 +89,18 @@ export default function HomeScreen() {
 
     return {
       stocks: stocks.filter((stock) =>
-        stock.descriptionStock?.toLowerCase().includes(query)
+        stock.descriptionStock?.toLowerCase().includes(query),
       ),
       magasins: magasins.filter((magasin) =>
-        magasin.nomMagasin?.toLowerCase().includes(query)
+        magasin.nomMagasin?.toLowerCase().includes(query),
       ),
       intrants: GetAllintrantList.filter(
         (intrant) =>
           intrant.nomIntrant?.toLowerCase().includes(query) ||
-          intrant.descriptionIntrant?.toLowerCase().includes(query)
+          intrant.descriptionIntrant?.toLowerCase().includes(query),
       ),
       filieres: fillieres.filter((filiere) =>
-        filiere.libelleFiliere?.toLowerCase().includes(query)
+        filiere.libelleFiliere?.toLowerCase().includes(query),
       ),
     };
   }, [searchQuery, stocks, magasins, GetAllintrantList, fillieres]);
@@ -123,7 +123,7 @@ export default function HomeScreen() {
     setFavorites((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
-        : [...prev, productId]
+        : [...prev, productId],
     );
   };
 
@@ -189,6 +189,7 @@ export default function HomeScreen() {
                   favorites={favorites}
                   onProductPress={handleProductPress}
                   onFavoritePress={toggleFavorite}
+                  onSeeAllPress={() => console.log("See all search results")}
                 />
               </View>
             )}
@@ -202,6 +203,7 @@ export default function HomeScreen() {
                 <FeaturedStoresList
                   stores={filteredData.magasins}
                   onStorePress={handleStorePress}
+                  onSeeAllPress={() => console.log("See all stores results")}
                 />
               </View>
             )}
@@ -309,7 +311,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <Header
         title="KOUMI"
         notificationCount={3}

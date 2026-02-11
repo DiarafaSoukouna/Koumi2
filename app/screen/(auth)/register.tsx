@@ -210,7 +210,7 @@ export default function RegisterScreen() {
       console.error("Erreur lors de l'inscription:", error);
       Alert.alert(
         "Erreur d'inscription",
-        error.response?.data?.message || "Une erreur est survenue"
+        error.response?.data?.message || "Une erreur est survenue",
       );
     }
   };
@@ -507,7 +507,7 @@ export default function RegisterScreen() {
                   items={speculationOptions}
                   error={errors.speculation}
                   disabled={loadingSpeculations}
-                  required
+                  // required
                   searchable
                   searchPlaceholder="Rechercher une spéculation..."
                   emptyMessage={

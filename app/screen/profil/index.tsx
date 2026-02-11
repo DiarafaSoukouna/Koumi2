@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/auth";
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import {
   Building,
   Mail,
@@ -8,7 +9,14 @@ import {
   Shield,
   User as UserIcon,
 } from "lucide-react-native";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfilPage() {
@@ -17,19 +25,61 @@ export default function ProfilPage() {
   // Si pas d'utilisateur connecté
   if (!user) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-gray-500 text-lg">
-            Aucun utilisateur connecté
+      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+        <View className="flex-1 items-center justify-center px-6 py-12">
+          {/* Icône principale */}
+          <View className="w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-500 rounded-3xl items-center justify-center mb-8">
+            <AntDesign name="user" size={32} color="black" />
+          </View>
+
+          {/* Titre principal */}
+          <Text className="text-3xl font-bold text-gray-800 text-center mb-4 px-8 leading-tight">
+            Aucun utilisateur
           </Text>
+          <Text className="text-3xl font-bold text-gray-800 text-center mb-2 px-8 leading-tight">
+            connecté
+          </Text>
+
+          {/* Sous-titre */}
+          <Text className="text-lg text-gray-500 text-center mb-8 px-12 leading-relaxed">
+            Connectez-vous pour accéder à votre profil et gérer vos informations
+          </Text>
+
+          {/* Boutons d'action */}
+          <View className="w-full max-w-sm space-y-3">
+            <Pressable
+              className="bg-gradient-to-r from-orange-500 to-orange-600 py-4 px-6 rounded-2xl items-center"
+              onPress={() => router.push("/screen/(auth)/login")}
+            >
+              <Text className="text-black font-semibold text-lg">
+                Se connecter
+              </Text>
+            </Pressable>
+
+            <Pressable
+              className="bg-white/80 border-2 border-orange-200 py-4 px-6 rounded-2xl items-center shadow-md backdrop-blur-sm"
+              onPress={() => router.push("/screen/(auth)/register")}
+            >
+              <Text className="text-orange-600 font-semibold text-lg">
+                Créer un compte
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Animation décorative */}
+          <View className="absolute top-20 left-8 w-20 h-20 bg-orange-200/50 rounded-full blur-xl" />
+          <View className="absolute bottom-32 right-12 w-24 h-24 bg-blue-200/30 rounded-full blur-xl" />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         {/* Header */}
         {/* <View className="w-full flex flex-row justify-between items-center px-5 py-3">
           <Pressable
@@ -78,8 +128,8 @@ export default function ProfilPage() {
               index % 3 === 0
                 ? "bg-orange-50 border-orange-200"
                 : index % 3 === 1
-                ? "bg-green-50 border-green-200"
-                : "bg-blue-50 border-blue-200"
+                  ? "bg-green-50 border-green-200"
+                  : "bg-blue-50 border-blue-200"
             }
           `}
                 >
@@ -90,8 +140,8 @@ export default function ProfilPage() {
               index % 3 === 0
                 ? "text-orange-700"
                 : index % 3 === 1
-                ? "text-green-700"
-                : "text-blue-700"
+                  ? "text-green-700"
+                  : "text-blue-700"
             }
           `}
                   >
@@ -299,13 +349,13 @@ export default function ProfilPage() {
         </View>
 
         {/* Bouton de déconnexion */}
-        <View className="mx-5 mb-10">
-          <Pressable
+        <View className="mx-5">
+          <TouchableOpacity
             className="bg-red-50 border border-red-200 rounded-2xl py-4 flex items-center justify-center"
             onPress={() => logout()}
           >
             <Text className="text-red-600 font-semibold">Se déconnecter</Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

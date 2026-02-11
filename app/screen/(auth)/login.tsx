@@ -2,6 +2,8 @@ import { CustomInput } from "@/components/common/CustomInput";
 import { useAuth } from "@/context/auth";
 import { router } from "expo-router";
 import {
+  ArrowRight,
+  Eye,
   KeyRound,
   LockKeyhole,
   Shield,
@@ -27,7 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function LoginScreen() {
   const { login, isLoading, error, clearError, loginCodePin } = useAuth();
   const [activeTab, setActiveTab] = useState<"username" | "codeActeur">(
-    "username"
+    "username",
   );
   const [fadeAnim] = useState(new Animated.Value(1)); // Changé de 0 à 1
   const [slideAnim] = useState(new Animated.Value(0));
@@ -133,9 +135,8 @@ export default function LoginScreen() {
       if (!validateUsernameForm()) return;
       try {
         await login(formData);
-      } catch (error) {
-        // L'erreur est déjà gérée dans le provider
-      }
+        router.replace("/(tabs)");
+      } catch (error) {}
     } else {
       if (!validateCodePinForm()) return;
       try {
@@ -153,6 +154,10 @@ export default function LoginScreen() {
     inputRange: [0, 1],
     outputRange: [0, screenWidth / 2],
   });
+
+  const handleExplore = () => {
+    router.push("/(tabs)");
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gradient-to-b from-white to-orange-50">
@@ -383,30 +388,56 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             {/* Divider avec effet */}
-            <View className="my-10">
-              <View className="relative">
-                <View className="h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
-                <View className="absolute inset-0 flex items-center justify-center">
-                  <View className="bg-white px-4">
-                    <Text className="text-gray-500 font-medium">Ou</Text>
-                  </View>
+            <View className="my-8">
+              <View className="relative flex-row items-center justify-center">
+                <View className="flex-1 h-px bg-gray-200" />
+                <View className="mx-4 bg-white/50 px-3 py-1 rounded-full border border-gray-100">
+                  <Text className="text-gray-400 font-medium text-xs uppercase tracking-widest">
+                    Ou
+                  </Text>
                 </View>
+                <View className="flex-1 h-px bg-gray-200" />
               </View>
             </View>
 
-            {/* Lien vers l'inscription */}
-            <View className="items-center">
-              <Text className="text-gray-600 text-base">
-                Vous n'avez pas de compte ?{" "}
-                <TouchableOpacity
-                  onPress={() => router.push("/screen/(auth)/register")}
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-primary font-bold text-base">
-                    S'inscrire maintenant
+            {/* Bouton Explorer sans compte - Redessiné */}
+            <TouchableOpacity
+              onPress={handleExplore}
+              className="bg-white rounded-2xl p-4 border border-orange-100 shadow-sm shadow-orange-100 active:opacity-90 mb-8"
+              activeOpacity={0.85}
+            >
+              <View className="flex-row items-center">
+                <View className="w-12 h-12 bg-orange-50 rounded-xl items-center justify-center mr-4">
+                  <Eye size={24} color="#EA580C" />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-bold text-lg text-gray-800">
+                    Explorer sans compte
                   </Text>
-                </TouchableOpacity>
-              </Text>
+                  <Text className="text-gray-500 text-sm mt-0.5">
+                    Découvrir les produits et services
+                  </Text>
+                </View>
+                <View className="bg-gray-50 p-2 rounded-full">
+                  <ArrowRight size={16} color="#9CA3AF" />
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Lien vers l'inscription */}
+            <View className="items-center mb-1">
+              <TouchableOpacity
+                onPress={() => router.push("/screen/(auth)/register")}
+                activeOpacity={0.7}
+                className="flex-row items-center"
+              >
+                <Text className="text-gray-600 text-base">
+                  Vous n'avez pas de compte ?{" "}
+                </Text>
+                <Text className="text-orange-600 font-bold text-base">
+                  S'inscrire
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Info supplémentaire */}

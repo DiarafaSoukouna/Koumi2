@@ -134,12 +134,12 @@ export default function OnboardingScreen() {
           showsHorizontalScrollIndicator={false}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: false }
+            { useNativeDriver: false },
           )}
           scrollEventThrottle={16}
           onMomentumScrollEnd={(event) => {
             const slideIndex = Math.round(
-              event.nativeEvent.contentOffset.x / width
+              event.nativeEvent.contentOffset.x / width,
             );
             setCurrentSlide(slideIndex);
           }}
@@ -147,27 +147,49 @@ export default function OnboardingScreen() {
           {slides.map((slide, index) => (
             <View key={slide.id} style={{ width }} className="px-8">
               {/* Illustration */}
-              <View className="items-center justify-center mt-12 mb-12">
+              <View
+                className="items-center justify-center"
+                style={{
+                  marginTop: height * 0.05,
+                  marginBottom: height * 0.04,
+                }}
+              >
                 <View
-                  className="w-72 h-72 rounded-[40px] items-center justify-center mb-8"
+                  className="rounded-[40px] items-center justify-center mb-6"
                   style={{
+                    width: width * 0.65,
+                    height: width * 0.65,
+                    maxWidth: 280,
+                    maxHeight: 280,
                     backgroundColor: `${slide.color}15`,
                     transform: [{ rotate: "45deg" }],
                   }}
                 >
                   <View
-                    className="w-64 h-64 rounded-[32px] items-center justify-center"
-                    style={{ backgroundColor: `${slide.color}25` }}
+                    className="rounded-[32px] items-center justify-center"
+                    style={{
+                      width: "88%",
+                      height: "88%",
+                      backgroundColor: `${slide.color}25`,
+                    }}
                   >
                     <View
-                      className="w-56 h-56 rounded-3xl items-center justify-center"
+                      className="rounded-3xl items-center justify-center"
                       style={{
+                        width: "88%",
+                        height: "88%",
                         backgroundColor: `${slide.color}35`,
                         transform: [{ rotate: "-45deg" }],
                       }}
                     >
-                      <View className="w-48 h-48 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-[40px] items-center justify-center shadow-2xl shadow-yellow-300">
-                        <Text style={{ fontSize: 96 }} className="text-10xl">
+                      <View
+                        className="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-[40px] items-center justify-center shadow-2xl shadow-yellow-300"
+                        style={{ width: "85%", height: "85%" }}
+                      >
+                        <Text
+                          style={{ fontSize: width * 0.22 }}
+                          className="text-10xl"
+                        >
                           {slide.emoji}
                         </Text>
                       </View>
@@ -177,17 +199,23 @@ export default function OnboardingScreen() {
               </View>
 
               {/* Contenu */}
-              <View className="items-center">
-                <View className="flex-row items-center mb-6">
-                  <View className="bg-yellow-500 p-3 rounded-xl shadow-md shadow-yellow-300">
-                    <slide.icon size={28} color="white" />
+              <View className="items-center px-4">
+                <View className="flex-row items-center mb-4">
+                  <View className="bg-yellow-500 p-2.5 rounded-xl shadow-md shadow-yellow-300">
+                    <slide.icon size={24} color="white" />
                   </View>
-                  <Text className="text-2xl font-bold text-gray-900 ml-4 max-w-[70%]">
+                  <Text
+                    className="text-xl font-bold text-gray-900 ml-3 flex-1"
+                    numberOfLines={2}
+                  >
                     {slide.title}
                   </Text>
                 </View>
 
-                <Text className="text-gray-600 text-lg text-center leading-7">
+                <Text
+                  className="text-gray-600 text-base text-center leading-6"
+                  numberOfLines={3}
+                >
                   {slide.description}
                 </Text>
               </View>
@@ -230,7 +258,7 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Bouton principal */}
-        <View className="px-8 pb-12">
+        <View className="px-8 pb-8">
           <TouchableOpacity
             onPress={handleNext}
             className="bg-gradient-to-r from-yellow-500 to-amber-500 rounded-2xl py-5 shadow-2xl shadow-yellow-300 bg-yellow-500 "

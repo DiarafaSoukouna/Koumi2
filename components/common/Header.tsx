@@ -40,15 +40,15 @@ export default function Header({
     const fullName = user.nomActeur || user.username || "Utilisateur";
 
     // Si le nom est trop long, tronquer à 5 caractères + "..."
-    if (fullName.length > 10) {
-      return fullName.substring(0, 10) + "...";
+    if (fullName.length > 13) {
+      return fullName.substring(0, 13) + "...";
     }
 
     return fullName;
   };
 
   return (
-    <View className="bg-gradient-to-b from-white to-orange-50 px-4 pt-4 pb-3 border-b border-orange-100">
+    <View className="bg-gradient-to-b from-white to-orange-50 px-4 pt-4 pb-1 border-b border-orange-100">
       {/* Ligne supérieure avec logo et notifications */}
       <View className="flex-row items-center justify-between mb-3">
         {/* Logo et titre */}
@@ -56,13 +56,13 @@ export default function Header({
           <View className="bg-gradient-to-br from-white to-orange-50 p-3 rounded-2xl shadow-md shadow-orange-100 border border-orange-100">
             <Image
               source={require("@/assets/images/logoKoumi.png")}
-              style={{ width: 40, height: 40 }}
+              style={{ width: 25, height: 25 }}
               resizeMode="contain"
               className="rounded-lg"
             />
           </View>
           <View className="ml-3">
-            <Text className="text-2xl font-bold text-gray-900">
+            <Text className="text-1xl font-bold text-gray-900">
               {getTruncatedName()}
             </Text>
           </View>
@@ -105,11 +105,11 @@ export default function Header({
             // Utilisateur non connecté : afficher uniquement le bouton "Se connecter"
             <TouchableOpacity
               onPress={onConnecterPress}
-              className="flex-row items-center bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 rounded-xl shadow-sm border border-orange-400"
+              className="flex-row items-center p-2 rounded-xl shadow-sm border border-orange-400"
               activeOpacity={0.7}
             >
-              <LogIn size={20} color="white" className="mr-2" />
-              <Text className="text-white font-medium text-sm">
+              <LogIn size={20} color="black" className="mr-2" />
+              <Text className="text-black font-medium text-sm">
                 Se connecter
               </Text>
             </TouchableOpacity>

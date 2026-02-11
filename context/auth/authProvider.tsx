@@ -22,7 +22,7 @@ export default ({ children }: { children: React.ReactNode }) => {
   const [speculations, setSpeculations] = useState<Speculation[]>([]);
   const [loadingSpeculations, setLoadingSpeculations] = useState(false);
   const [errorSpeculations, setErrorSpeculations] = useState<string | null>(
-    null
+    null,
   );
   const [niveau3Pays, setNiveau3Pays] = useState<Niveau3Pays[]>([]);
   const [loadingNiveau3Pays, setLoadingNiveau3Pays] = useState(false);
@@ -141,7 +141,7 @@ export default ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error(
         "Erreur lors de la récupération des infos utilisateur:",
-        error
+        error,
       );
       return null;
     }
@@ -198,6 +198,7 @@ export default ({ children }: { children: React.ReactNode }) => {
       setLoadingTypeActeur(true);
       setErrorTypeActeur(null);
       const data = await getAllTypeActeur();
+      console.log("mackytypeAuth", data);
       setTypeActeur(data);
     } catch (error: any) {
       setErrorTypeActeur(error.message);

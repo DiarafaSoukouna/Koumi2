@@ -76,6 +76,7 @@ export default ({ children }: { children: ReactNode }) => {
       setLoadingTypeActeur(true);
       setErrorTypeActeur(null);
       const data = await getAllTypeActeur();
+      console.log("mackytype", data);
       setTypeActeur(data);
     } catch (error: any) {
       setErrorTypeActeur(error.message);
